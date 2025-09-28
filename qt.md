@@ -461,7 +461,7 @@ PS D:\Repository\qt-lab\Qt6.5.3\Empty>
 
 ## 初识Qt
 
-### hello
+### hello world
 
 在刚才的环境测试中, 我们建立了一个空窗口, 在接下来, 我们将在这个空窗口之上添加文字文本 "hello". 我们将通过两种方式实现这一目标. 1) 通过from file, 即`.ui`文件 2) 纯代码实现
 
@@ -735,5 +735,307 @@ UTF-8的适用范围则更广, 它的设计目标是表示世界上所有的字�
 ![image-20250927181521770](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250927181521770.png)
 
 除此之外, `qDebug`的另一个好处就是, 它在内部设置一个由宏构成的功能开关, 只要我们把宏带上, 这些打印就会自动失效, 这样就不打印出信息了, 所以我们发布软件前就不需要改代码, 直接把宏带上就行, 后面, 我们就把它作为优先打印函数.
+
+-----
+
+通过刚才简单的hello world 我们就能获得对Qt 的不少认识:
+
+1) Qt 中有一个叫做`QLabel`的类, 能够在界面上显示文字
+2) `QLabel`的显示文本, 是通过`setText`来设置的, 该函数的接口参数类型是Qt 内部重构的容器类
+3) Qt出于历史缘由, 把C++中的许多容器类, 都进行了重新封装, 由此就有了一堆以`Q`开头的容器类, 它们的使用方法与标准库一致
+4)  在Qt开发中, 要十分警惕诸如内存泄漏, 文件描述符泄露的计算机资源泄露
+5) Qt 为了统一释放界面的空间, 引入了一个叫对象树的概念
+6) 所有的Qt基类都有挂载到对象树的能力, 因此我们只要继承对应的基类, 就能让自定义类也能被挂载到树上
+7) Qt 的这种基于面向对象的继承思想, 本质上是为了对现有代码在不改变框架的前提下进行扩展
+8) 栈上的对象不要挂载到对象树中, 没有挂载到对象树的堆对象, 注意手动释放
+9) Qt 的日志输出使用`qDebug`, 它不仅可以内部处理编码问题, 还能在程序上线前通过加宏的方式关闭所有输出
+10) 乱码问题本质上是存储时用的字符集和读取时用的字符集不一致造成的
+
+与其他的实际工程相同, 出于对实际生产环境下的兼容考虑, 比如, 机器比较敏感, 本身不允许使用调试器, 问题是概率出现的, 调试器太慢了... 我们在进行实际的程序调试时, 往往不是用调试器进行调试, 而是用日志打印的方式验证程序的运行逻辑与自己预期是否相同. 
+
+### 其它的hello world
+
+接下来, 我们再通过其他其它方式实现hello world.
+
+首先, 我们通过输入框实现hello world.
+
+在Qt中, 输入框主要有两种, 一种是单行编辑框, `QLineEdit`, 另一种是多行编辑框, `QTextEdit`. 这里我们使用单行编辑框, 毕竟"hello world"也挺短的.
+
+单行编辑框在输入控件下
+
+![image-20250928094050625](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928094050625.png)
+
+我们只需要将其拖摘到界面中, 稍微放大, 然后双击编辑文本内容即可
+
+![image-20250928094243034](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928094243034.png)
+
+又或者, 我们可以在选中控件后, 下拉右下角的属性编辑器, 那里也可以进行文本编辑
+
+![image-20250928094528929](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928094528929.png)
+
+运行程序, 我们发现, 程序界面不仅显示出了"hello world"字样, 而且, 还可以直接对其中的内容进行修改
+
+![image-20250928094826372](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928094826372.png)
+
+![image-20250928094847051](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928094847051.png)
+
+同样的, 纯代码方式也可以为界面加上单行编辑框, 具体代码写起来也很简单
+
+![image-20250928095659331](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928095659331.png)
+
+我们看到效果是差不多的
+
+![image-20250928095738303](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928095738303.png)
+
+接下来, 我们再通过按钮实现hello world
+
+在设计界面, 我们可以看到一个`Push Button`, 将其拖拽到界面上
+
+![image-20250928104625030](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928104625030.png)
+
+![image-20250928104733947](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928104733947.png)
+
+运行程序
+
+![image-20250928104802991](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928104802991.png)
+
+我们看到, 生成的界面上有一个写有"hello world"字样的按钮, 并且我们也可以按下这个按钮.
+
+只不过, 这个按钮按下去, 没有什么效果: 因为我们没有进行设置, 那接下来, 我们就对其设置一下, 让按钮按下变化文本. 如果实现这个极值呢? 这就要借助于Qt的另一个核心概念, 信号与槽, 具体的细节我们在后面章节会详细介绍, 在这里, 我们就先简单描述一下.
+
+信号和槽这个概念，其实在我们学 Linux 网络编程时就已经碰到过类似的模式。比如我们有两个对象，一个负责接收数据，另一个负责处理数据。为了让“接收端”在收到数据后能自动触发“处理端”的行为，我们通常会把“处理函数”先包装成一个函数对象（可能是函数指针，也可能是 `std::function`），存放在处理端内部。然后再把处理端的引用或指针交给接收端，使得接收端在某个时刻调用这个函数对象时，就能间接地修改处理端的状态。这里有一个关键点：虽然调用动作是由接收端触发的，但真正的执行时机往往由处理端决定——它可能立刻执行，也可能先缓存下来，等某个条件满足后再统一处理。
+
+Qt 的信号槽机制，本质上就是把这种“函数对象 + 状态转移”的模式规范化了，不过它换了一套更直观的语法来表达“谁发出通知，谁来响应”。
+
+要建立这种通知关系，需要用到一个叫 `connect` 的函数。这个名字我们在 Linux 网络编程里也见过。但 Qt 的 `connect` 和 TCP 的 `connect/accept` 并不是一回事，它们的共同点仅限于“建立一种连接关系”。
+
+在 Linux 里，`accept` 的作用是把底层收到的 TCP 请求上交到应用层，函数返回后本端就认为连接已经建立成功了，并且以文件描述符的形式交给我们继续读写。而在 Qt 里，`connect` 是 `QObject` 提供的一个静态函数，用于把“信号”连接到某个“槽函数”。凡是继承自 `QObject` 的类都具备这个能力，其中就包括 `QWidget`，而 `Widget` 又继承自 `QWidget`，所以我们就能在界面类内部直接调用 `connect` 来建立信号与槽的对应关系。
+
+```cpp
+// connect 的推荐语法（函数指针版）
+// 用于将 “信号” 和 “槽函数” 建立连接
+QObject::connect(
+    const QObject *sender,               // 信号的发送者
+    PointerToMemberFunction signal,      // 信号函数（一般写成 &类名::信号名）
+    const QObject *receiver,             // 信号的接收者
+    PointerToMemberFunction method,      // 槽函数（一般写成 &类名::函数名）
+    Qt::ConnectionType type = Qt::AutoConnection // （可选）连接方式
+);
+
+```
+
+在本项目中, 第一个参数是`ui->pushButton`, 表示谁发出信号, 既然我们按下的事按钮, 那信号自然就由按钮发出, 至于`ui`这个成员是怎么找到`pushButton`的, 等到from file对应的代码生成我们自然可以分析出. 至于`pushButton`这个名字, 那也是有讲究的, 我们重新回到设计界面, 然后看右上角的对象查看器, 就能看到有个叫做`pushButton`的对象
+
+![image-20250928114216959](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928114216959.png)
+
+当我们在设计模式里创建一个控件时, Qt 就会自动为其分配一个 `objectName`属性, 当然我们也可以手动修改这个属性., 当配置系统使用from file 生成对应的C++代码时, 生成的`QPushButton`对象的变量名就是`objectNmae`的字面量. 所以`ui->pushButton`的意思就是从`ui`中访问`pushButton`这个成员变量.
+
+第二个参数, 是`&QPushButton::clicked`, 这其实就是把`QPushButton`中的`clicked`函数指针取出来, `clicked`那就是动词`click`的过去分词表被动, 也就是被点击的意思, 实际上的意思就是, 如果信号被点击, 就会执行`clicked`这个函数, 是按钮被按下时的实际执行函数.
+
+第三个参数, 是`this`, 表示实际对信号做出响应的对象
+
+第四个参数, 是`&Widget::onClicked`, 前缀`on`是介词, 本意在`...`之上, 这里引申为"...的凭借, 由...支撑", 表方式, 这里的意思就是"被按下式所凭借的行为, 方式", 这也是Qt的一种命名习惯, 等会儿, 我们也要为`Widget`增添这个函数.
+
+![image-20250928120829692](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928120829692.png)
+
+![image-20250928120846063](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928120846063.png)
+
+这里, 我们就增加这样的操作: 当按钮被按下后, 将上面的文本切换成"hello qt"
+
+![image-20250928121056551](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928121056551.png)
+
+运行程序
+
+![image-20250928121141528](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928121141528.png)
+
+点击按钮
+
+![image-20250928121156474](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928121156474.png)
+
+再点一下, 还是"hello qt", 看似没有变化, 但实际上是变化的, 只是字符内容是相同的.
+
+那就接下来, 我们微调一下, 实现文本内容替换的效果
+
+```cpp
+void Widget::onClicked()
+{
+    if(ui->pushButton->text() == QString("hello world"))
+        ui->pushButton->setText("hello qt");
+    else
+        ui->pushButton->setText("hello world");
+}
+```
+
+此时生成的文本就可以做出切换效果
+
+![image-20250928121641375](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928121641375.png)
+
+接下来我们看看from file生成的代码, 看看`Ui::Widget *ui`是怎么找到`pushButton`的, 顺便验证一下, `objectNmae`是不是就是对应对象的变量名.
+
+![image-20250928122303906](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928122303906.png)
+
+我们看到, 其内部确实有一个`pushButton`对象, 接下来, 我们修改一下`ObjectName`, 并做适配, 之后重新运行.
+
+我们回到设计界面, 然后选中空闲, 在属性编辑界面, 更改`ObjectName`的内容
+
+![image-20250928122815396](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928122815396.png)
+
+代码的内容也要进行适配
+
+![image-20250928122933070](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928122933070.png)
+
+这里报错的原因是语法分析器还用着旧的头文件, 重新运行或构建即可
+
+![image-20250928123048330](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928123048330.png)
+
+就能看到变量名也发生了响应的变化
+
+![image-20250928123512049](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928123512049.png)
+
+另外, 我们观察一下该文件末尾的内容
+
+```cpp
+namespace Ui {
+    class Widget: public Ui_Widget {};
+} // namespace Ui
+```
+
+我们就会发现, 它在`Ui`这个命名域中定义了一个`class Widget`, 并且, 继承了`Ui_Widget`, 所以说, `Ui::Widget`就是`Ui_Widget`, 自然可以通过它访问`Ui_Widget`中的成员.
+
+那接下来, 我们就再通过代码方式实现之前的效果.
+
+尽管成员的析构可以由对象树来实现, 但我们仍旧需要定义一个`button`成员变量, 用来在不同的函数中访问对象
+
+![image-20250928133644593](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928133644593.png)
+
+![image-20250928133714593](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928133714593.png)
+
+运行
+
+![image-20250928133832476](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928133832476.png)
+
+同样可以达到相同的效果.
+
+在上面的项目中, 我们都分别使用图形化和纯代码方式分别实现了项目, 那在实际的开发过程中, 这两种方式又分别扮演着什么样的角色呢?
+
+实际上, 在实际开发中, 这两种方式都很常用, 我们都需要掌握, 图形化方式主要是用于静态界面, 也就是是说界面的空间不发生变化, 而代码主要是用于动态界面, 往往是点击一个界面, 出来一个控件, 或者点击之后, 控件隐藏. 因此, 在实际开发时, 采取的策略往往是不怎么变动的主界面使用图形化设计, 然后其中的具体细节使用代码来控制.
+
+### 命名规范
+
+在C语言阶段, 我们就知道, 在我们给变量/函数/文件/类起名字的时候, 是有讲究的.   首先, 起的名字要有描述性, 不应该使用诸如`abcd`之类的名字, 并且, 名字应该遵循一定的命名规范, 如果名字中有多个单词, 就要通过一定的方式来区分不同单词.
+
+比如在之前, 我们可能更多的偏好使用下划线`_`来进行单词的分隔, 比如`student_cont`, 这种风格叫做"蛇形命名法", 主要用在C/C++以及部分Python里, 不过, 除此之外的其它语言, 更多的是使用名为"驼峰命名法", 包括Qt框架, 例如`studentCont  QApplication   QWidget`, 并且更具体的说, "驼峰命名法"还分为"大驼峰", "小驼峰", "大驼峰"就是首字母大写, 一般被用于给类起名字, "小驼峰"就是首字母小写, 一般被用在给变量和函数起名.
+
+而在具体的生产环境下, 到底采取哪种命名方法, 需要依据项目的命名风格来定, 即"入乡随俗".
+
+### 文档查询
+
+对于Qt的帮助文档, 可以通过三种方式来使用
+
+第一种, 选中要查询的类名/方法名, 再按下F1
+
+比如我们想了解一下`QPushButton`, 那就可以双击选中它, 然后按下F1
+
+![image-20250928142111868](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142111868.png)
+
+这个是关闭
+
+![image-20250928142338542](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142338542.png)
+
+又或者查询`connect`
+
+![image-20250928142439169](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142439169.png)
+
+第二种方式, 那就是直接点击左边栏的帮助
+
+![image-20250928142533751](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142533751.png)
+
+这样, 就会以目录名形式, 将Qt的相关信息系统性地进行呈现
+
+![image-20250928142701068](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142701068.png)
+
+实际上用的不多, 更多是使用查询的那种方式
+
+第三种, 那就是使用"Assistant"
+
+![image-20250928142939686](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928142939686.png)
+
+我们可以, 查看Qt的系统性知识, 或者搜索一下特定内容, 甚至往里面加书签
+
+![image-20250928143142784](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928143142784.png)
+
+在我们的日常工作中, 可能会遇到很多小众的库, 可能它是专注于某个特定的方面, 因此可能网络上没有什么资料, 那此时, 就我们主要依靠的就是官方文档, 当然, 官方主文档大概率都是英文的, 查询英文文档也是我们这一行的必要素养.
+
+### Qt坐标体系
+
+作为一个图形化界面框架, 坐标系这一概念对于Qt来说是很重要的, 当然, 像其它的什么图形化开发方向, 比如图形学, 游戏引擎, 这些都涉及到坐标系这种核心概念. 毕竟我们需要定量描述控件在窗口中的位置, 这离不开坐标系的支持.
+
+首先我们要明确, Qt 所使用的坐标系, 就是我们在数学上常见的平面直角坐标系, 或者说笛卡尔坐标系. 不过Qt用的坐标系和数学上的又略有不同.
+
+在数学中, 横轴是从左往右增长的, 纵轴是从下往上增长的, 也就是右手坐标系
+
+![image-20250928151146253](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928151146253.png)
+
+计算机里的坐标系则是左手坐标系: 横轴从左往右增长, 纵轴从上往下增长
+
+![image-20250928151315197](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928151315197.png)
+
+对于计算机来说, 坐标系的原点就是屏幕的左上角或者是窗口的左上角.
+
+为什么这里说或者呢? 当我们给Qt中的某个控件, 设置位置时所参考的坐标系都是相对于父窗口或者屏幕来说的.
+
+![image-20250928151945553](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928151945553.png)
+
+比如在上图中, 最外层的是屏幕, 然后是`QWidget`, 最后是`QWidget`里的`QPushButton`, 对于`QPushButton`来说, 它的坐标系是依据`QWidget`来建立的
+
+![image-20250928152210110](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928152210110.png)
+
+`QWidget`, 没有父窗口, 此时它的坐标系就是依据整个屏幕来建的
+
+![image-20250928152412770](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928152412770.png)
+
+接下来, 我们新建一个项目, 并创建一个`QPushButton`, 显示"hello world"字样.
+
+![image-20250928153008130](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928153008130.png)
+
+运行, 就能看到按钮出现在左上角, 这里就是原点
+
+![image-20250928153101546](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928153101546.png)
+
+![image-20250928153308307](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928153308307.png)
+
+上面的那部分是系统添加的, 属于系统. 不在`Widget`范围之内. 默认情况下, 按钮出现的位置就是`(0, 0)`. 我们可以通过`move`方法移动控件位置.
+
+![image-20250928153629107](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928153629107.png)
+
+这里的`200 300`其单位都是像素.
+
+我们知道, 显示器本质上是由一堆可以发光的小亮点, 或者小灯泡, 来构成的. 尽管肉眼可能察觉不出来, 但我们可以用最大对焦的手机拍出来.
+
+![image-20250928154828120](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928154828120.png)
+
+又或者, 我们可以打开显示设置, 打开一个显示器, 然后我们就可以看到一个显示器分辨率的设置, 它描述的实际上就是屏幕上像素点的个数
+
+![image-20250928155900933](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928155900933.png)
+
+这里的意思就是水平方向有1920个像素点, 垂直方向有1080个像素点, 很明显, 显示器的像素点越多, 画质就越好, 显示器就越贵.
+
+像`1920 × 1080`的这种规格, 我们一般叫做"1080P", 在这里另一个显示器的规格则是`2560 × 1600`, 也就是我们俗称的"2K".
+
+![image-20250928160317394](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928160317394.png)
+
+现在我们运行程序, 可以看到, 按钮的位置发生了相应的变化
+
+![image-20250928160936692](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928160936692.png)
+
+当然, 我们也可以直接移动`Widget`本身, 只不过他的坐标系是相同于整个屏幕来说的
+
+![image-20250928161209261](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250928161209261.png)
+
+再次运行, 就发现`Widget`也做了相应变化, 这不过我这电脑设置过指定弹窗都出现在屏幕中央, 现在找不到在哪里关了, 截不了屏. 
+
+## 信号和槽
+
+
 
 # 完
