@@ -1036,6 +1036,319 @@ namespace Ui {
 
 ## 信号和槽
 
+### 基本概念及用法
 
+在对Linux系统编程的学习过程中, 我们也学过Linux中的"信号". 那Qt的信号又是怎样的呢?
+
+在Linux中, 信号"Signal"是系统内部的一种通知方式, 亦或者说是进程间进行通信的一种方式. 其中涉及到信号的"三要素"
+
+信号源, 描述谁发出信号,   信号的类型, 描述发出哪种类别的信号,  信号的处理方式, 初测一个信号处理方式, 在信号被触发的时候自动调用执行. 同样的, Qt的信号, 虽然和Linux信号不是同一概念, 但在设计理念上是类似的. 
+
+在Qt中, 也有信号三要素, 即 1) 信号源, 描述由哪个控件发出的信号, 是按钮发出的, 输入框发出的, 还是其他组件发出的   2) 信号类型, 表示信号的种类, 具体来说, 用户进行不同的操作, 就会触发不同的信号, 如, 点击按钮触发点击信号, 输入框内移动光标, 触发移动光标的信号, 选择一个下拉框, 也会触发对应的信号, 换句话来说, 喜信号的类型, 就是区分用户的不同操作, 毕竟, 图形化界面程序就是需要让用户进行交互, 以满足他的要求, 只有我们知道用户具体的行为是什么, 我们才能写出针对的处理方式. 3) 信号的处理方式, 在Qt中, 我们引入槽(slot)的概念, 用来指代处理信号的函数.
+
+于是乎, 在Qt中就可以通过`connect`这样的函数, 把一个信号和一个槽关联起来, 这样的话, 只要信号触发, Qt就会自动执行槽函数. 槽函数本质上就是一种回调函数. 回调函数的概念相信我们已经在有意或者无意状态下接触过了很多次, 比如, 最早我们学习C语言的函数指针时, 就见到了回调函数, 后来在C++, 我们也见过很多回调函数, 比如仿函数, 也就是operator()重载,, 它其实也算是一种回调函数, 有了仿函数后, 我们在方法或者类中就可以传入方法, 从而实现对库方法中的一些细节问题的调整, 比如改改排序的大小定义之类,  又或者, lambda 表达式, 就是一种更简洁的回调函数.    而在Linux中, 比如信号处理, 线程的入口函数, 多路转接的`epoll`, 都出现了回调函数的概念.
+
+从中我们都可以看到一个规律: 那就是这些回调函数的执行逻辑确实是我们写的, 而且是提前写好的, 但实际的执行时机都是交给别人来决定的, 不需要我们手动再调用.   
+
+在Qt中使用信号和槽离不开一个很重要的函数, `connect`, 注意该函数和TCP socket中的`connect`没有直接关系, 不必过度联想
+
+该函数实际是`QObject`提供的静态函数. 正如我们之前说的那样, Qt中存在着一定的继承关系. 实际上Qt正是通过继承才把众多的类组织到一起的. 
+
+像`QPushButton   QLineEdit   QTextEdit   QRadioButton`... 这些具体的控件类, 它们都有一个共同的父类, 也就是`QWidget`, 而`QWidget`再往上还有一个父类, 那就是`QObeject`, 除此之外, 除了`QWidget`, 像`QMainWindow`这些和`QWidget`并列的类也继承自`QObject`, 所以, 几乎可以说, Qt的类里面都有`QObject`, 也都都能使用`connect`.
+
+![image-20250929084600194](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929084600194.png)
+
+`connect`的函数签名如下
+
+```cpp
+// connect 的推荐语法（函数指针版）
+// 用于将 “信号” 和 “槽函数” 建立连接
+QObject::connect(
+    const QObject *sender,               // 信号的发送者
+    PointerToMemberFunction signal,      // 信号函数（一般写成 &类名::信号名）
+    const QObject *receiver,             // 信号的接收者
+    PointerToMemberFunction method,      // 槽函数（一般写成 &类名::函数名）
+    Qt::ConnectionType type = Qt::AutoConnection // （可选）连接方式
+);
+```
+
+尽管有五个参数, 但实际上第五个参数我们也可以看到, 提供了缺省值, 实际上, 第五个参数很少使用. 前四个已经够用了.
+
+第一个参数`sender`, 即信号源, 描述了哪个控件发出了信号, 第二个参数`signal`, 即信号的类型, 描述了用户具体的交互行为, 第三个信号`receiver`, 描述信号的处理者, 第四个参数`method`描述`receiver`具体的处理函数.
+
+下面我们就写代码体验一下: 我们将实现这样的一个功能: 界面上包含一个按钮, 用户点击按钮则关闭窗口.
+
+![image-20250929092850394](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929092850394.png)
+
+现在按钮已经写出来了, 运行, 我们发现程序运行正常, 只不过按钮按下没有反应: 因为我们没有`connect`
+
+"CTRL + 鼠标左键点击", 就可以查看某个类的定义, 我们看到`QPsuhButton`继承自`QWidget`
+
+![image-20250929093357789](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929093357789.png)
+
+![image-20250929093420404](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929093420404.png)
+
+而`QWidget`又继承自`QObject`
+
+![image-20250929093504559](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929093504559.png)
+
+"ALT + ←方向键"可以回退到上一个文件
+
+![image-20250929093742623](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929093742623.png)
+
+我们拿子类的指针传到父类的形参上, 我们知道, 这当然是可以的
+
+![image-20250929094537356](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929094537356.png)
+
+我们知道, 英语没有未来时变位, 对于未来将要发生的事情, 在编程中一般直接用动词原形, 比如, 此处的"click", 是动词原形, 表示"将要按下", 它的意思就是说, 如果你做了某件事, 那么这个按钮就会被按下, 更准确的说, "click"是槽函数, 它调用时, 就相当于点击了一下按钮, 而对于"clicked", 使用了过去分词形式, 是信号函数, 表示按钮已经按下了, 发出"按钮被按下"的信号. 另外, 我们也能看到, 函数前面的图标也表示了该方法的类型, 像一个"斜放城墙"的图标, 表示这是一个槽函数, 而另一个不太好描述的图标, 则表示这是一个信号函数.
+
+Creator 17.0.1 的语法分析器明显优化了, 因为`connect`第二个参数不会出现槽函数的预选项, 因此在这里用旧版
+
+![image-20250929095628817](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929095628817.png)
+
+我们这里自然是要传一个信号函数
+
+![image-20250929095735716](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929095735716.png)
+
+这里我们也要求, `connect`的前两个参数一定要是匹配的, 既然第一个参数是`QPushButton`类型, 那么第二个参数就应该是`QPushButton`中的方法.
+
+第三个参数, 描述提供槽函数的对象, 也就是`this`, `Widget`也是`QObject`子类, 自然也能传递
+
+![image-20250929100049185](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929100049185.png)
+
+最后第四个函数, 则是`Widget`中的`close`函数, 更准确的说, 是`Widget`从`QWdiget`那里继承下来的`close`
+
+双击选中`QWidget`, `F1`帮助, 选择`public slots`
+
+![image-20250929100754924](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929100754924.png)
+
+![image-20250929100810480](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929100810480.png)
+
+![image-20250929100911685](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929100911685.png)
+
+看名字我们就能看出来, `close`表示关闭窗口
+
+于是整句`connect(button, &QPushButton::clicked, this, &Widget::close)`的意思就是, 针对`button`进行点击, `Widget`就会关闭.
+
+此时我们按下按钮, 窗口就会关闭
+
+![image-20250929101231233](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929101231233.png)
+
+写下`connect(button, &QPushButton::clicked, this, &Widget::close)`, 可能有人还有一些问题, 比如, 我怎么知道`QPushButton`里面怎么有一个`clicked`信号函数, 亦或者`Widget`里面怎么有一个`close`槽函数的? 一句话概括就是, 我怎么知道Qt里面的各种类有哪些信号和槽呢?
+
+其实这个问题我们在上面已经无意中解答过了, 那就是翻阅帮助文档. 下面, 我们就用旧版SDK中的`Assistant`找找`clicked`.
+
+进入索引, 我们直接搜索`QPushButton`
+
+![image-20250929103549546](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929103549546.png)
+
+然后朝下翻我们发现竟然没有`Signals`这个项, 后面都是具体的使用细节
+
+![image-20250929103808930](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929103808930.png)
+
+这怎么回事? 要注意, `QPushButton`它上面还有一个父类呢, 既然我们代码编对了, 那就说明, `QPushButton`里面肯定是有`clicked`的
+
+我们看最前面的项
+
+![image-20250929105420318](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929105420318.png)
+
+`Inherits`自然不必说, 继承的意思, 意思就是`QPushButton Class`是从`QAbstractButton`那里继承下来的, 而对于`Inherited By`则是被动语态的构成, 我们知道, 英语中被动语态的构成是
+
+```txt
+be（系动词/助动词） + V-ed（过去分词） + by + 执行者
+```
+
+例如
+
+```txt
+The carrot was eaten by the rabbit.   胡萝卜被兔子吃了
+```
+
+不过很多情况下, 不需要表明"被谁..."这一概念(可能大家都知道), 所以把上面的句子改的更简洁一点就是
+
+```txt
+A carrot was eaten.
+```
+
+这其实就是非谓语动词中过去分词作主语补语(表语)的用法.
+
+所以`Inherited By`的意思就是
+
+```txt
+The QPushButton Class was inherited by the QCommandLinkButton. QPushButton 被 QCommandLinkButton 继承
+```
+
+那下面我们就去`QAbstractButton Class`那边看看, 我们知道`abstract`是抽象的意思, Qt用的`abstract`一般是逻辑上的抽象, 而不是C++语法的那种抽象(有纯虚函数). Qt中会提供很多按钮, 这些按钮之间存在一些"共性"内容, 就把这些共性的东西, 放到`QAbstractButton`里, 然后其它的按钮直接继承就行, 这样就不用再考虑按钮的公共功能, 只需要对具体的按钮进行一些个性化的设计
+
+![image-20250929112003001](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929112003001.png)
+
+往下翻, 我们就能看到`clicked`
+
+![image-20250929112049489](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929112049489.png)
+
+我们看到, `clicked`还带一个缺省参数, 这个参数在`QPushButton`里是用不到的, 所以目前我们也不需要管. 后面的`pressed`是鼠标按下, `released`是鼠标释放, 这其实就是把"按下按钮"这个动作拆分了, `toggled`则是状态切换, 比如复选框的勾选与否.
+
+我们点击`clicked`, 就可以跳转到对应的细节说明
+
+![image-20250929112810907](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929112810907.png)
+
+`emitted`是发出的意思, 那这里就是"触发一个信号", 后面`when`引导的定语从句就描述了信号的触发时机, 是按钮被激活的时候, 比如, 先按下, 然后再松开, 在鼠标指针处在按钮里的时候.   并且, 按下组合键  或者`click animateClick`被调用的时候, 信号也会被触发.
+
+`connect`其实还有一个远古版本
+
+```cpp
+bool QObject::connect(
+    const QObject *sender,
+    const char *signal,
+    const QObject *receiver,
+    const char *method,
+    Qt::ConnectionType type = Qt::AutoConnection
+);
+```
+
+这个远古版本我们现在已经不用了, 对比一下我们使用的`connect`
+
+```cpp
+QObject::connect(
+    const QObject *sender,               // 信号的发送者
+    PointerToMemberFunction signal,      // 信号函数（一般写成 &类名::信号名）
+    const QObject *receiver,             // 信号的接收者
+    PointerToMemberFunction method,      // 槽函数（一般写成 &类名::函数名）
+    Qt::ConnectionType type = Qt::AutoConnection // （可选）连接方式
+);
+```
+
+我们看到, 这两个`connect`的第一个和第二个参数是不同的, 在原来, 它们的类型都是`const char*`, 而现在则都是`PointerToMemberFunction`, 另外这个`PointerToMemberFunction`其实也不是类型, 而是一种语义标注. 
+
+在以前, 为了能让取出的函数指针适配`const char*`, 我们要在外面包上一层宏, 把它转成`const char*`, 否则类型不匹配, 比如:
+
+```cpp
+connect(button, SIGNAL(clicked()), this, SLOT(close()));
+```
+
+这其实就牵扯到Qt`connect`函数底层的一个设计思路的发展.
+
+其实, 最开始, Qt为了实现`connect`的功能, 它相当于自己又建立了一张功能更强大的虚函数表, 在底层的`QObject`类中, 维护着一张`map`表, 这个表的左边是常量字符串, 右边是函数指针
+
+```cpp
+std::unordered_map<std::string, std::function<void()>> funcMap;
+funcMap["foo"] = &foo;
+funcMap["bar"] = &bar;
+```
+
+每次, 其它类继承`QObject`之后, 都要相应的对表的内容进行手动修改或者增加内容, 所以说像虚函数表, 只不过实际上Qt的虚函数表应该没有这么简单, 可能还有其他内容.  
+
+而`SIGNAL`和`SLOT`的作用就是把输入的参数解释成常量字符串传参. 等到实际要执行的时候, 才通过常量字符串找到`map`那一头的函数指针进行执行. 
+
+所以以前的`connect`是一种纯粹基于字面量进行函数对象的检索存储和执行, 函数指针只是最后被执行一下, 它并不参与检索和存储阶段.
+
+现在版本的`connect`则与之不同, 它就是基于指针来进行函数对象的传递的, 它没有字符串转换的中间过程, 所以你在传参的时候传的就是地址, 不是字面量, 所以你需要带上`&QPushButton::`这种东西, 一方面是你要取地址, 另一方面是你要跨域取地址, 所以你必须要指定域名, 否则找不到.
+
+并且`PointerToMemberFunction`实际上也不是类型, 函数类型很多, 他不能提供一个明确的类型, 所以使用的是模版或者泛型编程的技术, 也就是说, 它们两个是模版类型.
+
+我们同样`CTRL` 点击`connect`, 就能分别找到`connect`的不同重载版本
+
+![image-20250929131740868](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929131740868.png)
+
+这里面用到了一个类型萃取的C++操作, 就是利用成员函数的类型反推出类的类型.
+
+首先, 需要明确的是对于类的成员函数, 其函数指针的类型也是含有类的信息的, 只不过我们之前没有应用场景, 所以很少会强调这一点, 在此既然遇到了, 我们就详细演示一下
+
+```cpp
+#include <iostream>
+#include <cxxabi.h>
+
+class a{
+    public:
+    void f(int){};
+};
+
+int main() {
+    int status;
+    char* realname = abi::__cxa_demangle(typeid(&a::f).name(), 0, 0,
+    &status); std::cout << realname << std::endl; std::free(realname);
+}
+
+```
+
+如果直接打印`typeid(&a::f).name()`, 其显示的是经过编译器修饰过的符号, 不是可读的 C++ 类型名, 所以我们这里用反修饰语句还原
+
+```shell
+[wind@Ubuntu test]$ clang++ main.cpp 
+[wind@Ubuntu test]$ ./a.out 
+void (a::*)(int)
+[wind@Ubuntu test]$ 
+```
+
+类型萃取其实也很简单, 那就是直接通过成员函数的类型直接把对应类的类型直接取出来
+
+```cpp
+#include <iostream>
+#include <cxxabi.h>
+
+class a{
+    public:
+    void f(int){};
+};
+
+// 一个模版类
+template<typename Func> struct FunctionPointer;  
+
+// 针对类成员函数作偏特化
+template<typename R, typename C, typename... Args>
+struct FunctionPointer<R (C::*)(Args...)> {
+    using Object = C;                       // 提取类类型
+    using ReturnType = R;                   // 提取成员函数返回类型
+    using Arguments = std::tuple<Args...>;  // 提取参数列表类型
+};
+
+
+int main() {
+
+
+    int status;
+    char* realname = abi::__cxa_demangle(typeid(&a::f).name(), 0, 0,
+    &status); std::cout << realname << std::endl; std::free(realname);
+
+    FunctionPointer<void (a::*)(int)>::Object i;  // 取出其中的Object类型
+    realname = abi::__cxa_demangle(typeid(i).name(), 0, 0,
+    &status); std::cout << realname << std::endl; std::free(realname);
+
+    return 0;
+}
+
+```
+
+```shell
+[wind@Ubuntu test]$ clang++ main.cpp 
+[wind@Ubuntu test]$ ./a.out 
+void (a::*)(int)
+a
+[wind@Ubuntu test]$ 
+```
+
+所以 `const typename QtPrivate::FunctionPointer<Func1>::Object *sender` 最终会被展开为 `QPushButton* sender`，也就意味着 Qt 在编译期就能知道信号来自哪个类，并据此进行类型检查，而不像旧版那样只能在运行时通过字符串查表。
+
+### 信号和槽函数的扩展
+
+在上面的例子中, 我们所使用的信号和槽函数都是Qt中内置的, 尽管说Qt内置的信号和槽函数已经很多了, 但正所谓"计划赶不上变化", 有时我们就需要为Qt增加自定义的信号和槽函数.
+
+我们先说自定义槽, 槽函数的自定义其实很简单, 在Qt 5之后, 槽函数的定义和普通的成员函数一致, 你可以把它完全当场普通的成员函数来写.
+
+![image-20250929154307656](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929154307656.png)
+
+![image-20250929154322215](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929154322215.png)
+
+运行
+
+![image-20250929154343822](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929154343822.png)
+
+![image-20250929154400187](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929154400187.png)
+
+之前我们说在Qt 5, 可以直接把自定义槽函数当做普通成员函数来写, 而在之前, 比如Qt 4, 则必须在声明前加上`public/private slots`, 如下
+
+![image-20250929154659670](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20250929154659670.png)
+
+这里就相当于Qt 在C++上增加了自己的标准. Qt 是一个元编程技术, 即基于我们的代码, 生成其它代码, 为此它可能需要通过某些关键字, 来判断下面的代码是干什么的, 有什么意义. 不过在现在, 不写这个也行. 
 
 # 完
