@@ -1678,6 +1678,229 @@ Qt的控件还不是这么现代, 不过我们也可以通过细节设置进行�
 
 ![image-20251002164827777](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251002164827777.png)
 
+#### geometry
 
+`geometry`即几何. 听起来有些抽象? 实际上, 你可以把它理解成四个属性的统称: 横坐标, 纵坐标(位置), 长, 宽(尺寸). 注意, 具体描述的是控件左上角的位置.
+
+![image-20251003101415582](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003101415582.png)
+
+ 与之相关的API, 有若干个, 在这里我们只是拿出最常用的两个
+
+| API                                                          | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `geometry()`                                                 | 获取控件的几何属性. 返回一个`QRect`, 其中有`x, y, width height`这四个参数 |
+| `setGeometry(QRect)   setGeometry(int x, int y, int width, int height)` | 设置控件的位置和尺寸, 可以直接设置, 也可以用四个参数单独设置 |
+
+`Rect`是`rectangular`(矩形)的缩写. 在Qt中, 也对一些几何概念进行了封装, 比如`QPoint`(点), `QRect`(矩形). 由于这些对象中的属性比较少, 所以在传参的时候一般按照值的方式进行传参, 而不是用引用.
+
+下面, 我们就写一个程序, 通过四个建来控制一个矩形的位置属性
+
+在设计界面, 我们创建五个按钮, 其中一个作为矩形, 而剩下四个, 则分别作为上下左右这四个方向键.
+
+![image-20251003103913337](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003103913337.png)
+
+然后, 我们对四个方向键分别创建对应的槽函数
+
+![image-20251003103857983](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003103857983.png)
+
+![image-20251003105104760](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003105104760.png)
+
+其它的方法, 也是相同的模式
+
+运行
+
+![image-20251003105453196](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003105453196.png)
+
+![image-20251003105746183](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003105746183.png)
+
+我们发现, 它确实动了, 但好像不是按照我们想的那样动的: 它似乎是右下角不变, 仅仅是在移动左上角, 这样的话, 在移动过程中并没有保持住原有的形状, 而是发生了形变.   这是因为我们使用的是`rect.set`系列函数, 它在设置过程中, 尺寸也会发生变化.
+
+如果不想让尺寸发生变化, 而仅仅是实现平移的效果, 就需要使用第二种`setGeometry`
+
+![image-20251003110443713](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003110443713.png)
+
+重新运行
+
+![image-20251003110531550](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003110531550.png)
+
+于是我们就实现了平移的效果
+
+![image-20251003110603032](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003110603032.png)
+
+接下来, 我们再写一个用来请假的恶搞程序: 点击批准, 那就批准了, 点击驳回, 按钮会跑.
+
+![image-20251003114831488](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003114831488.png)
+
+在设计界面, 我们引入一个标签, 两个按钮
+
+接下来, 我们为这两个按钮增加不同的槽函数
+
+![image-20251003122016655](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122016655.png)
+
+运行
+
+![image-20251003122029226](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122029226.png)
+
+![image-20251003122101496](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122101496.png)
+
+![image-20251003122111733](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122111733.png)
+
+![image-20251003122128821](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122128821.png)
+
+我们能不能做得更绝一点呢? 现在是点击后才移动, 如果我点击但不松开, 它就不移动
+
+![image-20251003122420265](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122420265.png)
+
+所以我们可以把信号改成`pressed`, 也就是按下时就触发信号, 而不是按完后
+
+我们之前说过图形化的自动连接的机制了, 这里, 我们就把函数名改一下即可, 别忘了头文件那边也要改
+
+![image-20251003122714090](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122714090.png)
+
+运行
+
+![image-20251003122744227](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003122744227.png)
+
+能不能做得更绝一点: 鼠标靠近按钮, 不按下, 按钮就跑? 当然是可以的, 但是以我们现在的知识水平, 还不行, 等讲到Qt事件这个知识点之后, 我们再回来改.
+
+#### WindowFrame
+
+其实, Qt中窗口坐标原点体系分为两种, 分别是不包括`WindowFrame`和包括`WindowFrame`. 我们之前说的坐标都是不包含`WindowFrame`的.
+
+对于我们编写的窗口来说, 除了窗口本体来说, 其实还会多一些东西出来
+
+![image-20251003125523344](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003125523344.png)
+
+窗口的外围会有一圈细边, 上面还有一个窗口标题. 这些东西, 我们就叫做`WindowFrame`, 或者说, 窗口框架. 这是操作系统自己给窗口加的东西, 你也可以对其进行设置, 进行隐藏, 比如--打游戏全屏的时候.
+
+这样的话, 其实对于参考系的原点, 就有了两套标准
+
+![image-20251003130147652](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003130147652.png)
+
+我们之前使用的API, 就是`geometry`系列, 它的原点就是不带`WindowFrame`的, 也就是以窗口本体左上角为原点的, 而`FrameGeometry   setFrameGeometry`这些接口, 它们的坐标系就是带上`WindowFrame`的, 也就是说, 它们的原点是框架的左上角.
+
+关于位置, 还有许多API, 在此我们就不介绍了. 我们需要注意的事, 在使用它们时, 要注意, 使用的到底是哪个坐标系.
+
+下面, 我们写一个程序来看一看
+
+![image-20251003131127971](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003131127971.png)
+
+运行之后, 我们发现它们似乎没有什么区别? 这是为什么呢? 其实也是因为我们打印的时机实在构造函数中, 也就是说, 我们在对象还没有完全实例化之前进行了打印, 此时框架还没被加上, 所以没有区别.
+
+为此, 我们可以加一个按钮, 按钮按下再打印
+
+![image-20251003131626773](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003131626773.png)
+
+![image-20251003131726546](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003131726546.png)
+
+从运行结果来看, 我这里应该没有那条细边, 只有窗口标题, 这其实是平台差异, 但不论怎么说, 窗口标题是有的.
+
+在Qt 5上, 我们就能看到是有边框的, 宽度是一像素.
+
+![image-20251003133234063](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003133234063.png)
+
+#### WindowTitle
+
+`windowTitle`和`setWindowTitle`可以对窗口的标题进行读写. 需要注意的是, 这里说的窗口是顶层窗口, 也就是说, 这个窗口是对象树的根节点, 是有`WindowFrame`的那种窗口, 
+
+![image-20251003134817173](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003134817173.png)
+
+但如果是子`QWidget`, 比如一个按钮, 仍可以对其调用`setWindowTitle`, 但不会有实际效果
+
+![image-20251003135122390](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003135122390.png)
+
+没有效果, 也无报错. 所以在设置标题的时候, 别把对象找错了.
+
+#### WindowIcon
+
+该属性描述顶层窗口的图标.  图标就是程序运行时在任务栏上的图标
+
+![image-20251003145939577](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003145939577.png)
+
+比如, 这些图标
+
+相比之下, Qt 的默认图标就不太美观
+
+![image-20251003150146055](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003150146055.png)
+
+此时, 我们就可以通过调用`setWindowIcon(const QIcon& icon)`, 其中的`QIcon`, 自然就是用来描述图标内容的对象类型. 相比之下, `windowIcon`获取图标对象就很少用, 除此之外, 它也是只对顶层窗口有效. 值得注意的是, 我们会在栈上创建这个对象, 可能有人问为什么不在堆上创建然后挂到对象树上? 从设计理念上来说, 对象树上的对象都是控件, 而`icon`它的职责是把资源文件从磁盘上读到内存中, 然后再写到窗口的属性中, 所以它们不是一种对象, 因此`icon`他不应该挂载到对象树上; 从实际操作中, `QIcon`也没有继承自`QObject`, 所以它也根本没有挂载到对象树上的能力.
+
+既然是图标, 当然要有图片, 这里就有一张图片
+
+![Furina](https://md-wind.oss-cn-nanjing.aliyuncs.com/Furina.jpg)
+
+这是一张AI图, 虽然看起来比较真. 它的本机文件地址是"D:\Users\wind\Pictures\Saved Pictures\Furina.jpg"
+
+![image-20251003152423534](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003152423534.png)
+
+需要注意的是, 这里不应该使用`windows`的路径分隔符, 因为在C/C++中, 默认情况下会将`\`视为转义字符, 比如`\n \r`. 当然如果非要用, 可以使用`\\`, 这样就可以第二个`\`就会对第一个`\`也进行转义, 使得第一个`\`失去转义的能力, 从而被视作路径分隔符.或者你可以使用C++11引入的`raw string`, 这样就不会进行任何转义, 比如`r("d:\furina.jpg")`. 这里我们当然使用最简单直接的方式
+
+运行
+
+![image-20251003153208872](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003153208872.png)
+
+当然, 这张图比例不太对, 效果不太好. 任务栏也是相同的图标
+
+---------
+
+但对于这种代码来说, 有一个很严重的问题, 那就是硬编码了, 它使用了并不靠谱的绝对路径, 程序最后是要发布到用户的电脑上的, 这样写肯定是不行的. 为此我们有两种办法. 
+
+一是把我们所需要的资源文件放在安装目录下. 所谓安装目录, 顾名思义, 就是程序安装的路径, 也就是说, 在程序安装到用户的电脑上时, 也把所需要的资源文件同样安装进去, 然后尽管用户的整体文件结构整体是未知的, 但安装的根目录是由我们确定的, 我们知道根目录下的文件结构, 因此就可以使用相对路径的方式找到资源文件. 具体怎么办, `cmake`中其实讲过, 这里就不说了.
+
+另外一种, 把资源文件中的二进制数据直接读出来, 写到可执行程序本体里面, 它的缺点就是如果资源文件很大, 小图标当然没什么, 要是视频音频就会很大, 程序的编译时间会显著变长, 本体大小也会显著变大, 运行时就会变慢. 
+
+这里我们讲的就是第二种.
+
+具体地来说, 我们将会在项目中新建一个`xml`文件(后缀是`.qrc`), 用资源文件初始化它, 然后Qt会把这个`xml`转换成字符数组代码, 最后把这个字符数组编译到程序里面.
+
+首先我们添加新文件, 使用`Qt Resource File`模版
+
+![image-20251003155237603](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003155237603.png)
+
+它会自动加上后缀的
+
+![image-20251003155406081](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003155406081.png)
+
+版本控制选默认就行
+
+此时我们就会进入这样的一个界面
+
+![image-20251003155513227](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003155513227.png)
+
+这里有一个“添加前缀”的按钮。说到前缀，就要讲讲 `qrc` 的设计思路：它希望对资源文件进行有效管理，因此建立了一个虚拟的文件系统。当物理资源在 `.qrc` 中被注册时，`.qrc` 会记录它的实际物理路径（通常使用相对路径以保证跨平台性）。开发者可以为每个文件分配一个逻辑路径作为唯一标识符，这样在代码里就可以通过逻辑路径访问资源。构建时，Qt 会根据 `.qrc` 找到对应的物理文件并将其打包到程序中，从而形成逻辑路径到物理文件的映射关系。
+
+采用文件路径形式作为逻辑标识符的好处是，它天然具有层次性，更便于统一管理资源，也让程序内部的资源层次更加清晰。当然，如果你问我为什么要额外抽象出一个 `qrc` 虚拟文件树，我只能说大概率是为了方便：逻辑访问和物理布局分离。对于 `qrc`，你完全可以把资源文件集中放置，只依赖虚拟路径理清逻辑，只要注册后不要随意移动它们即可。而物理层面的文件布局容易被破坏，但虚拟目录实际上就是 `.qrc` 文件本身的文本，除非你修改了这个文件，否则逻辑路径不会改变。
+
+那在这里, 我们就先点击一下它
+
+![image-20251003171727720](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003171727720.png)
+
+我们看到, 它自动生成了一个前缀, 但我们的资源其实很少, 所以不必要太在乎, 我们直接使用一个`/`就行了
+
+![image-20251003171833729](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003171833729.png)
+
+接下来, 我们注册文件, 点击添加文件, 注意, 资源文件必须放在项目文件夹(或子文件夹)下(不然不和绝对路径差不多吗), 并且再注册之后, 就不能再移动了.
+
+![image-20251003172255782](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003172255782.png)
+
+这样, 在虚拟文件树下就有了我们的文件
+
+![image-20251003172330521](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003172330521.png)
+
+接下来, 我们就可以直接使用这个虚拟的路径访问资源文件
+
+![image-20251003172810425](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003172810425.png)
+
+它是以`:`为前缀开头的, 后面的就是虚拟路径(前缀 + 文件名)
+
+接下来, 我们打开项目, 去看一下资源文件对应的生成代码
+
+![image-20251003173554270](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003173554270.png)
+
+然后我们就能看到一个无符号字符类型的数组
+
+![image-20251003173643733](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251003173643733.png)
+
+资源文件再怎么说,也是二进制构成的, 直接把他们的内容读出来并编译到可执行程序, 自然不怕丢.
 
 # 完
