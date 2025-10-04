@@ -1903,4 +1903,314 @@ Qt的控件还不是这么现代, 不过我们也可以通过细节设置进行�
 
 资源文件再怎么说,也是二进制构成的, 直接把他们的内容读出来并编译到可执行程序, 自然不怕丢.
 
+#### WindowOpacity
+
+`opacity`是不透明的意思, 所以很明显, 这个属性就是用来描述控件的不透明性的.   比如Windows 7的毛玻璃效果, 那就是基于半透明而做出的效果. `windowOpacity`属性在数值上是一个`float`, 其数值介于`0~1`之间, `0.0`表示全透明, `1.0`表示完全不透明.
+
+下面, 我们仍旧是通过代码直接演示: 我们将引入两个按钮调节窗口的透明度
+
+![image-20251004115229780](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004115229780.png)
+
+运行
+
+![image-20251004115401086](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004115401086.png)
+
+不过, 在输出这里, 似乎有些不太对: 这很明显不是以0.1为间隔变化的
+
+![image-20251004115452357](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004115452357.png)
+
+产生这种原因并不奇怪, 这源自C/C++对于浮点数的存储机制
+
+```shell
+[wind@Ubuntu test]$ touch test.cpp
+[wind@Ubuntu test]$ clang++ test.cpp 
+[wind@Ubuntu test]$ cat test.cpp 
+#include <cstdio>
+
+int main()
+{
+    float i = 0.1;
+    printf("%.10f\n", i);
+
+    return 0;
+}
+[wind@Ubuntu test]$ ./a.out 
+0.1000000015
+[wind@Ubuntu test]$ 
+```
+
+早在我们学习C语言的时候, 我们就说过
+
+![image-20251004120907109](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004120907109.png)
+
+浮点数分为符号位, 有效数字, 指数部分这三类. 第一个有效数位的权为`0.5`, 第二个是`0.25`, 第三个是`0.125`....由于有效数字部分长度是有限的, 所以对于某些数字, 比如这里的`0.1`, 在内存中实际上存的并不是`0.1`, 而是一个很接近于`0.1`的数.
+
+所以写代码的时候, 对于浮点数的比较应该使用误差的形式, 而不是直接比较. 当然也存在一些精确表示的方式, 但效率就比较低.
+
+-------
+
+除此之外, 需要说明的是, `setWindowOpacity`这个函数对于参数其实有内部检查, 也就是说如果输入的参数超出`0~1`的范围, 这个参数就会被舍弃, 函数本身也不会进行任何操作.  因此, 从功能性的角度来说, 我们在外面不加检查也是可以的.
+
+但实际开发中, 我们还是推荐, 即使你明知道所用的参数内部有参数检查, 那你也在外面检查一下. 这就涉及到"防御性编程"的观点. 我们不能依赖于别人的安全检查, 自己也必须要有安全检查. 这样, 即使别人出问题了, 也不会出现太大问题. 要知道, 实际开发我们是一个项目组. 可能这边写个模块, 给那边用, 那边也写一个模块, 给我用, 对于这种情况, 我们就要抱着"不怕一万, 就拍万一"的心态, 对于输入模块的参数进行自我检查, 当然, 写模块的, 在内部也要有安全检查. 这样就形成了一种双重检查, 它的好处就是可以让项目更加模块化, 我写的或者我使用的模块, 不依赖于另一方的操作, 即使真的出问题了, 也不好在我身上找问题.
+
+#### cursor
+
+`cursor`, 描述鼠标光标的样式. 比如, 我的系统光标是这样的
+
+![image-20251004130456977](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004130456977.png)
+
+与之有关的, 有三个API, `curson()`可以获取当前空间的光标属性, 以`QCursor`对象的形式返回. `setCursor(const QCursor&)`则是对光标进行设置, 除此之外, 还有静态函数`QGuiApplication::setOverideCursor(const QCursor&)`则是设置对象树级别的光标, 就是整个对象树上的控件光标形式都被设置成了这样, 对象树子节点上的控件原来的光标属性会被覆盖. 我们这里重点演示前两个.
+
+在设计界面, 我们就可以直接对光标属性进行设置
+
+![image-20251004131253502](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004131253502.png)
+
+我们这里就改成"禁止"
+
+  ![image-20251004135749064](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004135749064.png)
+
+当然也可以用代码的形式来改
+
+![image-20251004140754362](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004140754362.png)
+
+这里就是对窗口的光标进行了设置
+
+![Cursor_pgFUZTA79A](https://md-wind.oss-cn-nanjing.aliyuncs.com/Cursor_pgFUZTA79A.png)
+
+同时我们`CTRL`点击`WaitCursor`, 就能看到更多样式
+
+![image-20251004141057975](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141057975.png)
+
+当然, 我们也可以使用自己的图标作为光标. 比如我们可以搜索"阿里巴巴 矢量图标库"
+
+![image-20251004141253670](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141253670.png)
+
+其中就有很多图标
+
+![image-20251004141342845](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141342845.png)
+
+这里直接下载就行
+
+![image-20251004141424812](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141424812.png)
+
+保存到项目文件夹下, 然后和上次`icon`那样, 我们添加资源文件
+
+![image-20251004141607350](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141607350.png)
+
+前缀还是简单一些
+
+![image-20251004141646991](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141646991.png)
+
+再将文件注册
+
+![image-20251004141719601](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004141719601.png)
+
+在Qt中, 也有很多类型可以访问图片, 常用的类型是`QPixmap`.
+
+运行
+
+![image-20251004142201720](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004142201720.png)
+
+不过我们看到, 图片有些大, 此时也很好解决, `QPixmap`是支持图片缩小放大的. 我们可以使用`QPixmap`的`scaled`成员函数, 构造出一个更改大小的新图片对象.
+
+![image-20251004142926125](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004142926125.png)
+
+第三个参数是保持比例进行改变, 具体按照什么规则改变这里就不说了
+
+![image-20251004143037550](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004143037550.png)
+
+另外, 需要说的一点是, 我们看到光标是一个图片, 但点击时很明显是一个点, 那么这个点究竟是图片上的那一个点呢?(这个点术语叫做"热点") 不同版本的Qt对此有不同的处理, 对于这里的Qt来说, 它默认中心选择的是图片的几何中心. 不过我们也可以手动控制
+
+这样写, 就是把图片的左上角作为"热点"
+
+![image-20251004143536594](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004143536594.png)
+
+#### font
+
+`font`即字体属性, 是有关一系列字体属性的集合. 在Qt中, `QFont`是描述字体对象的类型.其中包含许多子属性
+
+<table border="1" cellspacing="0" cellpadding="6">
+  <tr>
+    <th>属性</th>
+    <th>说明</th>
+  </tr>
+  <tr>
+    <td><code>family</code></td>
+    <td>
+      字体族, 如 
+      <span style="font-family: 微软雅黑;">"微软雅黑"</span>, 
+      <span style="font-family: 仿宋;">"仿宋"</span>, 
+      <span style="font-family: 楷体;">"楷体"</span>
+    </td>
+  </tr>
+  <tr>
+    <td><code>pointSize</code></td>
+    <td>
+      字体大小, 单位像素  
+      (<span style="font-size:12px;">12px 示例</span>, 
+      <span style="font-size:18px;">18px 示例</span>, 
+      <span style="font-size:24px;">24px 示例</span>)
+    </td>
+  </tr>
+  <tr>
+    <td><code>weight</code></td>
+    <td>
+      字体粗细, 取值范围为[0, 99], 数值越大, 字体越粗  
+      (<span style="font-weight:50;">细 50</span>, 
+      <span style="font-weight:75;">粗 75</span>)
+    </td>
+  </tr>
+  <tr>
+    <td><code>bold</code></td>
+    <td>
+      是否加粗, <b>加粗</b> 相当于weight为75, 不加粗相当于weight为50
+    </td>
+  </tr>
+  <tr>
+    <td><code>italic</code></td>
+    <td>
+      是否<i>倾斜</i>
+    </td>
+  </tr>
+  <tr>
+    <td><code>underline</code></td>
+    <td>
+      是否带有<u>下划线</u>
+    </td>
+  </tr>
+  <tr>
+    <td><code>strikeOut</code></td>
+    <td>
+      是否带有<s>删除线</s>
+    </td>
+  </tr>
+</table>
+对于我们来说, 字体设计一般不由我们亲自进行, 我们只需要把美工的设计设置进去就行了, 如果公司比较小, 没有他们, 那可以去参考别人的设计, 比如
+
+我们可以打开一个网站, 进入开发者模式(F12)
+
+然后我们选择这个按钮
+
+![image-20251004152954613](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004152954613.png)
+
+把光标移到文本上
+
+![image-20251004153106786](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004153106786.png)
+
+然后就能看到了.
+
+我们首先在设计界面进行设置, 拖入标签,
+
+![image-20251004153325505](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004153325505.png)
+
+展开`font`
+
+![image-20251004153350575](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004153350575.png)
+
+后面两个就不管了, 实际不是和文本有关的
+
+![image-20251004153534275](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004153534275.png)
+
+![image-20251004153546455](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004153546455.png)
+
+对于设计界面来说, 优点就是实时展示效果, 但它只能进行静态设置, 如果我们想程序运行过程中更改字体, 此时就只能用代码了.
+
+![image-20251004154310965](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004154310965.png)
+
+#### toolTip
+
+当我们想为空间增加描述性文本内容的时候, 就可以使用`toolTip`, 把光标移到控件上, 描述性文本就会出现一段时间, 然后消失.
+
+比如这个, 当然这个是如果不挪开, 一直显示
+
+![image-20251004155841960](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004155841960.png)
+
+语法提示, 其实也是`toolTip`
+
+![image-20251004160031670](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004160031670.png)
+
+与之相关的,主要使用的有两个接口, `setToolTip setToolTipDuring`, 前者设置文本, 后者设置显示的时间, 单位是`ms`, 获取不常用.
+
+进入设计界面, 我们引入两个按钮
+
+![image-20251004160528595](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004160528595.png)
+
+这样的话, 一个是停留三秒, 另一个就是四秒
+
+![image-20251004160910087](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004160910087.png)
+
+#### focusPolicy
+
+这个属性需要稍微理解一下. 该属性用于描述控件获取到焦点的策略.
+
+这里就要谈一谈焦点这个概念. 一个界面, 可能会有很多组件, 这些组件怎么知道用户是和它交互的? 而不是和别的组件交互的呢.  这就要求控件获取焦点,  从用户的角度来说, 就是用户以某种方式选择了一个控件.
+
+比如我们打开浏览器的开始界面
+
+![image-20251004164940972](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004164940972.png)
+
+刚打开时, 不论键盘怎么按, 输入框都没有反应
+
+只有我先选中输入框, 比如通过鼠标点击的方式, 这样搜索框才能接收到我的输入内容
+
+![image-20251004165118050](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004165118050.png)
+
+或者我们创建一个全新的Qt项目
+
+![image-20251004165221875](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004165221875.png)
+
+我们按一下方向键, 就选中了不同的控件
+
+![image-20251004165259915](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004165259915.png)
+
+现在再按一下`TAB`键, 此时再按下方向键, 切换的就是这两个按钮
+
+![image-20251004165440968](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004165440968.png)
+
+再按一下`TAB`, 切换的就是这些按钮
+
+![image-20251004165519346](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004165519346.png)
+
+控件被选中的过程就叫做控件获得了焦点. 而`focusPolicy`属性描述的就是可以通过哪些方式去选择控件, 在上面, 我们用的方式分别就是鼠标点击和键盘的某些特定键.
+
+在线笔试时的反作弊机制也和焦点有关.  你进入在线笔试的链接, 进入页面后, 这个页面就是获得了焦点, 如果你切到别的地方, 页面就会失焦, 后台就能检测出来. 并且在线笔试的反作弊机制其实已经非常成熟, 比如它也会通过摄像头检测你答题时的状态, 答题是的状态在后台都可以分析得很清楚, 所以在这里要说的一句题外话就是, 可以不会写, 题做的不好也是有可能入职的, 但作弊是态度问题, 查出来, 一方面不会提醒你, 另一方面, 一定会拒绝你, 甚至可能终身拉黑你, 永不录取.
+
+与`focusPolicy`有关的常用接口有两个: `focusPolicy()   setFocusPolicy(Qt::FocusPolicy)`, 其中`Qt::FocusPolicy`是一个 枚举类型, 枚举了获取焦点的几种策略.
+
+- `NoFocus`    控件不会接受焦点, 比如纯粹用来显示文本的label标签
+- `TabFocus`    可以通过`TAB`获取焦点
+- `ClickFocus`    可以通过鼠标点击获取焦点
+- `StrongFocus`    既可以通过`TAB`, 也可以通过鼠标, 是默认策略
+- `WheelFocus`     新增内容, 在`StrongFocus`的基础上增加了鼠标滚轮的获取方式, 不常用
+
+接下来, 还是做实际项目
+
+进入设计界面, 创建四个输入框, 即Line Edit
+
+![image-20251004171617654](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004171617654.png)
+
+运行程序, 就会采用默认策略`StrongFocus`
+
+![image-20251004171740210](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004171740210.png)
+
+此时无论是,鼠标点击还是`Tab`, 都可以选中它们
+
+![image-20251004171921921](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004171921921.png)
+
+按下`Tab`, 切换到下一个
+
+![image-20251004171949646](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004171949646.png)
+
+`SHIFT TAB`, 选择上一个
+
+![image-20251004172027331](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004172027331.png)
+
+接着, 我们对第二个输入框进行设置, 策略改为`NoFocus`
+
+![image-20251004172142402](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251004172142402.png)
+
+此时第二个输入框就无法被选中
+
+如果改成`TabFocus`, 虽然鼠标无法选中, 但`TAB`可以选中. `ClickFocus`则是反过来.
+
 # 完

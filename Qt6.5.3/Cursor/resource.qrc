@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>002-atom.png</file>
+    </qresource>
+</RCC>
