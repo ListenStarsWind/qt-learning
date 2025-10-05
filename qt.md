@@ -2213,4 +2213,262 @@ int main()
 
 如果改成`TabFocus`, 虽然鼠标无法选中, 但`TAB`可以选中. `ClickFocus`则是反过来.
 
+#### styleSheet
+
+`style`是样式的意思, `sheet`原意是"纸", 这里引申为"清单", 所以`styleSheet`就是样式表的意思.它的作用是通过类似于`CSS`的方式来设置控件的样式.
+
+那这里就涉及到两个概念, `CSS`和样式. `CSS`全写是"Cascading Style Sheets", 翻译为"层叠样式表", 最开始它是网页前端开发用于描述界面样式的一种技术, 这种技术已经经过了多年的发展, 非常成熟, 能把界面设置得很好看, 于是Qt就以这项技术为基准, 发展出了自己的QSS技术. `styleSheet`就是QSS的一部分, 对于QSS技术的细节, 我们在之后再说. 对于样式这个概念, 一句话来说, 就是定量描述界面样貌的形式, 计算机是数据处理的机器, 所以自然是要定量的进行描述.
+
+接下来, 我们就使用`styleSheet`来设置标签的样式
+
+![image-20251005104725361](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005104725361.png)
+
+在我们选中标签后, 在属性界面就可以看到`styleSheet`属性
+
+![image-20251005104924379](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005104924379.png)
+
+点击省略号按钮, 就能弹出编辑窗口
+
+![image-20251005105004323](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005105004323.png)
+
+或者右键控件, 改变样式表
+
+![image-20251005105040673](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005105040673.png)
+
+`styleSheet`的格式和CSS类似: 按照键值对的形式设置, 键和值之间使用":"分隔, 键值对和键值对之间使用";"分隔.
+
+![image-20251005105820505](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005105820505.png)
+
+![image-20251005105838991](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005105838991.png)
+
+![image-20251005105958167](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005105958167.png)
+
+样式表中的具体属性和选项, 可以通过文档, 搜索"Qt Style Sheet". 具体细节在后续的QSS专属章节我们再谈.
+
+接下来, 我们再写一个项目: 通过代码形式实现窗口"light, dark"模式的切换, 一般来说, "light"也就是日光模式, 背景是白色的, 字体是黑色的, "dark"也就是夜间模式, 背景是黑色的, 字体是白色的.
+
+我们拖入一个文本框, 比如"Plain Text  Edit", 再拖入两个按钮, 分别作为切换到亮色主题和深色主题的按钮.
+
+![image-20251005111430100](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005111430100.png)
+
+注意不要拼写错误
+
+![image-20251005112058164](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005112058164.png)
+
+运行
+
+刚开始
+
+![image-20251005112114341](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005112114341.png)
+
+按下"亮色主题"按钮
+
+![image-20251005112145621](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005112145621.png)
+
+按下"深色主题"按钮
+
+![image-20251005112207170](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005112207170.png)
+
+我们看到, 这里实际上出现了三种模式, 因为Qt程序的默认窗口背景并不是白色, 而是有点泛灰的感觉, 接下来我们就把亮色主题的背景改成默认的背景颜色.
+
+为此我们就要想办法获取默认背景的颜色, 这里就牵扯到计算机中对颜色的表示了.
+
+尽管在上面我们都是用单词表示颜色的, 似乎没有体现出"定量"的感觉, 但实际上, 对于计算机来说, 这些颜色都对应着特定的数值
+
+![image-20251005112822097](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005112822097.png)
+
+计算机中一种常用的颜色表示方法就是"RGB", 这三个字母分别表示光学的三原色, "red", "green", "blue", 这三种光的颜色就可以通过不同程度的混合, 搭配出其它各种各样的颜色. 我们显示屏上的像素小灯泡, 每一个都可以按照任意比例搭配三原色, 这样就能让显示屏显示出各种各样的颜色.
+
+![image-20251005113640859](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005113640859.png)
+
+在`RGB`中, 每个颜色的搭配长度用一个字节长度的数字表示, 即`0~255`, 当然用十六进制也是可以的, 即`0x00~0xFF`
+
+现在我们已经知道了计算机的颜色表示方法, 就要应对另一个问题: 该如何把默认的背景颜色给取出来呢? 其实也很简单, 计算机中有一类专门的程序叫做取色器, 可以获取屏幕上具体某个点的颜色, 比如, PS上就有取色器. 不过呢, PS太重了, 对于我们这种并不从事于美术行业的人员来说, 可以使用一种更轻量的方法, 实际上, QQ截图就自带取色器.
+
+唤醒QQ截图, 我们就可以看到这样的界面
+
+![image-20251005131729749](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005131729749.png)
+
+这里他就显示了一个十六位进制的色值, 并且按下C可复制色号
+
+现在我们回到之前的程序上, 再次用QQ取色值
+
+![image-20251005131915011](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005131915011.png)
+
+这里我们就看到, 背景的默认颜色是#F0F0F0, 我们接下来改一下代码
+
+![image-20251005132427011](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005132427011.png)
+
+此时再次按下"亮色模式", 背景就是默认颜色
+
+![image-20251005132518398](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005132518398.png)
+
+最后要说的一点是, RGB其实上是计算机表示颜色的一种简化模型, 对于专门从事相关行业的人士来说, 可能还有包括色域, 色准, 色深之内的参数, 它们的显示器也需要特别配置, 以使得显示器更准确的显示颜色.
+
+### QAbstractButton
+
+前面我们曾经提到过, `Button`类控件都继承自`QAbstractButton`, `abstract`意为抽象的, 也就是说它是含有纯虚函数的抽象类. 无法被实例化, 如果将它继承则必须将其中的虚函数进行重写才行, 前面我们似乎说过`QAbstractButton`的抽象是语义层面, 而非语法层面的, 但在经过实际的测试之后, 发现以前的观点实际上是错的, 在这里我统一说明, `QAbstractButton`就是带有纯虚函数的抽象类
+
+
+`QAbstractButton`的继承体系如下:
+
+![image-20251005150726648](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005150726648.png)
+
+正如前面我们说过的那样, Qt的各种控件都继承了`QWidget`, 所以前面我们说过的各种属性在下面的空间都是有效的. 因此下面如果用到相关的属性我们不会进一步说明. 而`QAbstractButton`向下又有四个子类, 我们重点会说明`QPushButton QCheckBox  QRadioButton`, 因为第四个`QToolButton`, 即工具按钮用的不多.
+
+#### QPushButton
+
+`QAbstractButton`中, 和`QPushButton`相关性较大的属性如下:
+
+| 属性                 | 说明                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `text`               | 按钮显示的文本                                               |
+| `icon`               | 按钮的图标样式                                               |
+| `iconSize`           | 按钮图标的大小                                               |
+| `shortcut`           | 按钮对应的快捷键                                             |
+| `autoRepeat`         | 布尔类型, 描述长按按钮被视为按下一次还是多次, true视为按下多次, 反之亦然, 为方便起见, 我们引申枪战游戏的概念, 简化为是否可以"连发" |
+| `autoRepeatDelay`    | 在``autoRepeat``为真的情况下, 描述刚开始按下后多长时间视为第二次按下 |
+| `autoRepeatInterval` | 在``autoRepeat``为真的情况下, 描述自第二次按下开始再长按多长时间视为下一次按下 |
+
+接下来, 我们就写一个项目, 为按钮增加图标, 
+
+首先, 我们要有图片, 在这里, 我们就选用`doge`这张照片
+
+![doge](https://md-wind.oss-cn-nanjing.aliyuncs.com/doge.jpg)
+
+因为这张照片也很小, 所以我们还是使用`qrc`方案
+
+![image-20251005155413026](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005155413026.png)
+
+设计界面, 创建一个按钮
+
+![image-20251005155711453](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005155711453.png)
+
+在这里再顺便说一下与`qrc`有关的一个Qt bug, 那就是在处于别的文件的时候, 点击此处的`.qrc`文件并不会切换到`qrc`的那个界面
+
+![image-20251005160012360](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160012360.png)
+
+但我们可以换一种方式进入界面, 那就是用此处的文件切换
+
+![image-20251005160104620](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160104620.png)
+
+这样就可以进入界面了
+
+![image-20251005160138806](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160138806.png)
+
+添加图标
+
+![image-20251005160259156](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160259156.png)
+
+运行
+
+![image-20251005160327830](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160327830.png)
+
+不过这里有些小, 那么我们可以用`IconSize`再改一下
+
+![image-20251005160726240](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005160726240.png)
+
+接下来, 我们把快捷键加进来
+
+在前进, 我们曾经写过这样的一个项目: 通过四个按钮控制target的移动. 在这里, 我们仍旧是写一个类似的项目, 但将为四个方向键增加快捷键.
+
+首先, 既然我们刚学了图标, 那么在这里我们也不使用文字表达按键的含义, 而是使用图标. 因为照片比较多了, 所以我们把上下左右的方向图标统一放到项目的一个子文件夹下.
+
+```shell
+PS D:\Repository\qt-lab\Qt6.5.3\QPushButtonShortCut> wsl ls -al image
+total 48
+drwxrwxrwx 1 wind wind  4096 Oct  5 17:18 .
+drwxrwxrwx 1 wind wind  4096 Oct  5 17:18 ..
+-rwxrwxrwx 1 wind wind 32544 Oct  5 15:48 doge.jpg
+-rwxrwxrwx 1 wind wind  3416 Oct  5 17:10 down.png
+-rwxrwxrwx 1 wind wind  3347 Oct  5 17:11 left.png
+-rwxrwxrwx 1 wind wind  3204 Oct  5 17:10 right.png
+-rwxrwxrwx 1 wind wind  3398 Oct  5 17:10 up.png
+PS D:\Repository\qt-lab\Qt6.5.3\QPushButtonShortCut>
+```
+
+然后进入资源界面, 把这五个照片添加进来, 注意, 此时如果要访问它们, 也要带上`image`这个子文件
+
+![image-20251005172151525](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005172151525.png)
+
+![image-20251005172312670](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005172312670.png)
+
+然后进入设计界面, 创建五个按钮
+
+![image-20251005172749141](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005172749141.png)
+
+![image-20251005172803278](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005172803278.png)
+
+接下来, 我们为这些按钮添加图标
+
+![image-20251005173209913](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005173209913.png)
+
+关于图标大小的设置, 我们可以去设计界面的属性哪里查看按钮的尺寸
+
+![image-20251005173306255](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005173306255.png)
+
+![image-20251005173659521](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005173659521.png)
+
+这里运行, 看一下效果
+
+![image-20251005173741975](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005173741975.png)
+
+接下来, 我们为方向键增加槽函数, 改变doge的位置, 之前我们应该是用move移动的, 既然如此, 在这里我们就使用`setGeometry`来移动
+
+![image-20251005174318538](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005174318538.png)
+
+现在, 我们运行鼠标点击按键已经可以移动了
+
+![image-20251005174400517](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005174400517.png)
+
+![image-20251005174415787](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005174415787.png)
+
+接下来, 我们就要为按钮添加快捷键.
+
+`setShortcut`的参数是`QKeySequence`, 即键序列, 为什么还有序列呢? 因为它也是支持组合键的.
+
+![image-20251005174959240](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005174959240.png)
+
+运行, 此时我们就可以用按键的方式控制doge的移动
+
+![image-20251005175102542](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005175102542.png)
+
+或者我们也可以使用Qt中对于键值的枚举常量.
+
+![image-20251005175326930](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005175326930.png)
+
+如果要表示组合键, 也就是与关系的话, 我们可以这样写
+
+![image-20251005180108627](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005180108627.png)
+
+有人可能会说, 与关系怎么用或操作符. 这是因为Qt内部对于这些键的编码是按照位图形式的, 像`QT::SHIFT`这样的键专门用于构成组合键, 它的低位都是零, 而像`Qt::Key_K`这样的键, 数值都比较小, 所以此处, `+`和`|`会达到相同的效果(当然, 他这里的语法提示不推荐+的写法)
+
+![image-20251005180539596](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005180539596.png)
+
+![image-20251005180554058](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005180554058.png)
+
+![image-20251005180618261](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005180618261.png)
+
+需要注意的事, 还存在`Qt::Key_Shift`这种键, 这种键不是起修饰作用的, 它的数值是在低位的, 所以无法起到修饰作用, 更直白地来说, 是只能单个用, 不能用在组合键里.
+
+或者你也可以这样写, 但注意不要有空格
+
+![image-20251005181256335](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005181256335.png)
+
+如果你想表达或关系, 比如, 按下w和按下k效果相等, 那就需要用到`QShortcut`对象加上信号槽的写法
+
+`QShortcut`是对快捷键的一种抽象, 它可以起到一种内存级别键盘控件的效果, 当某个被按下时, 对应的`QShortcut`就会发出激活信号, 从而触发按钮的按下槽函数, 它可以说是一种虚拟控件, 所以需要挂载到对象树上.
+
+![image-20251005183446396](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005183446396.png)
+
+不能再调一次`setShortcut`, 那样相当于覆盖.
+
+除此之外, 在上面程序的运行中, 我们还可以体会到键盘上的按键默认就是可以连续按下的, 也就是`autoRepeat`默认为`true`: 一直按着键盘, 就可以一直移动, 但鼠标一直按着则不行. 也就是键盘可以连发, 鼠标不行.
+
+如果我们想让鼠标也支持连发, 直接进行设置即可
+
+![image-20251005184236253](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005184236253.png)
+
+
+
 # 完
