@@ -2469,6 +2469,270 @@ PS D:\Repository\qt-lab\Qt6.5.3\QPushButtonShortCut>
 
 ![image-20251005184236253](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251005184236253.png)
 
+#### QRadioButton
+
+"radio"在此处表示的意思是"单选", 而非收音机. 至于为什么用"radio"这个单词, 是因为早期的收音机上有三个用来选择频段的三个机械按钮(AF, FM, 短波), 这三个按钮的特性就是只能按下一个, 原先被按下的按钮会自动弹起, 而这正符合单选按钮的逻辑.
+
+`QAbstractButton`中和`QRadioButton`关系较大的属性如下:
+
+| 属性             | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| `checkable`      | 是否能选中                                                   |
+| `checked`        | 在`checkabel`为`true`的前提下, 表示是否被选中                |
+| `autoExclusive ` | 是否排他, 选中⼀个按钮之后是否会取消其他按钮的选中.  对于`QRadioButton`来说, 默认就是排他的 |
+
+下面我们就写一个调查问卷, 询问你是否愿意自愿加班.
+
+进入设计界面
+
+![image-20251006112925313](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006112925313.png)
+
+然后我们再加点互动语吧
+
+![image-20251006113626899](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006113626899.png)
+
+运行, 我们看到, 只能选一个按钮, 选了这个, 另外一个就会自动取消, 也就是具有排他的效果
+
+![image-20251006113729297](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006113729297.png)
+
+![image-20251006113740140](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006113740140.png)
+
+![image-20251006113750820](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006113750820.png)
+
+我们可以为这个单选设置一个默认的选项
+
+![image-20251006114445487](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006114445487.png)
+
+这样就不用我们的员工再手点了, 这不省事吗?
+
+接下来, 我们再禁用"不愿意"这个选项, 这样就可以更省事了.
+
+![image-20251006114806060](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006114806060.png)
+
+这样, 我们就选择不了"不愿意"按钮
+
+![image-20251006114834587](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006114834587.png)
+
+不过稍微有些问题, 它的按下信号还是被触发了, 因此有标签的文本互动.
+
+因此, 我们使用`QWidget`中的`enable`或者`disable`属性都行.
+
+![image-20251006115419576](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006115419576.png)
+
+----------
+
+在之前, 我们曾说, 有两个`QAbstractButton`中的信号函数在`QPushButton`里说不了, 那么, 我们就在这里演示一下效果
+
+![image-20251006120104271](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006120104271.png)
+
+我们还是新建一个项目, 进入设计界面, 拖入四个`QRadioButton`, 分别对应`clicked(bool), pressed(), released(), toggled(bool)`
+
+![image-20251006120635433](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006120635433.png)
+
+![image-20251006120759117](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006120759117.png)
+
+带参数的`clicked`, 表示按下后是否被选中, 你可能会问按下后那不铁定被选中吗? 那不一定, 比如像之前那样, `checkable`是`false`.  `pressed`则是按下时信号激活, `released`则是松开后信号激活.`toggled`则是状态切换, 也就是选到没选中, 或者没选中到选中时触发, 参数依旧是它有没有选中.
+
+![image-20251006121509426](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121509426.png)
+
+我们看到, 点下多少1, 那就打印多少次
+
+![image-20251006121555996](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121555996.png)
+
+2, 没松下就打印
+
+![image-20251006121637591](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121637591.png)
+
+3 松下才会打印
+
+![image-20251006121714871](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121714871.png)
+
+![image-20251006121729689](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121729689.png)
+
+4 从没选中到选中
+
+![image-20251006121831842](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121831842.png)
+
+从选中到没选中
+
+![image-20251006121900179](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006121900179.png)
+
+---
+
+接下来我们再写一个菜单, 我们知道肯德基它们有套餐的概念, 每个套餐又分为三个组, 分别是, 汉堡, 小食, 饮料. 组与组之间相互独立, 组内的各个选项互相排他.
+
+![image-20251006123619036](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006123619036.png)
+
+运行, 我们发现选倒是能选, 但它们似乎都被视为同一组
+
+![image-20251006123714813](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006123714813.png)
+
+![image-20251006123726752](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006123726752.png)
+
+因此我们就需要为这些`QRadioButton`分组, 这里就要引入`QButtonGroup`这个工具对象, 对不同的按钮进行分组
+
+![image-20251006124210315](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006124210315.png)
+
+此处, 我们就把前三个按钮分到了第一组里
+
+![image-20251006124240011](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006124240011.png)
+
+当然, 设计界面也可以分组, 矩形选中, 右键, 新建按钮组
+
+![image-20251006124411584](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006124411584.png)
+
+后面两个我们就用设计界面的方式, 然后, 运行
+
+![image-20251006124526345](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006124526345.png)
+
+#### QCheckButton
+
+同样是选择按钮, 相比`QRadioButton`, `QCheckButton`不再具有默认的排他性, 也就是说, 它是~~符玄~~复选按钮. 
+
+`QCheckButton`和`QAbstractButton`最相关的属性也是`checkable`和`checked`, 尽管, `QCheckButton`也有独有的属性`tristate`, 用来实现"三态复选框", 但用的很少, 这里不会提及.
+
+接下来我们直接上代码
+
+![image-20251006132239458](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006132239458.png)
+
+多选之后, 按下确认, 标签将会总结安排
+
+![image-20251006134012561](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006134012561.png)
+
+运行
+
+![image-20251006134052436](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006134052436.png)
+
+我们发现, 和我们想的不太一样, 坏了, 真要找bug了.
+
+其实问题也很简单, 我们设计界面的标签太小了, 后面的字没显示出来
+
+![image-20251006134215790](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006134215790.png)
+
+调大一些就行了
+
+![image-20251006134236213](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006134236213.png)
+
+我们看到, 现在就正常了
+
+![image-20251006134307958](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006134307958.png)
+
+### QDisplay
+
+下面我们要介绍 Qt 的显示控件。与按钮不同，显示控件的继承体系并不统一。Qt 在设计时，并没有为它们提供一个类似 `QAbstractButton` 的总抽象类，而是根据不同功能领域进行分类抽象。这么做的原因在于，显示控件的种类跨度很大，难以用单一的父类来涵盖。这里我使用 **`QDisplay`** 作为标题，并不是要说明 Qt 中真的存在这样一个类，而是为了方便归纳，将这些显示控件统一放在一个小节中讨论。在后续的介绍里，我们也会更多地从控件本身的功能出发，而不是强调它们的继承关系。
+
+#### QLabel
+
+我们首先介绍我们已经用到很多次, 并且将来也会主要用的`QLabel`. 可以用来显示文本和图片, 其具体的核心属性如下:
+
+- `text`
+  顾名思义, 用于描述`QLabel`显示的文本内容
+- `textFormat`
+  描述文本的格式, 有四个枚举值可供选择 1) 纯文本`Qt::PlainText` 2) 富文本`Qt::RichText` 3) markdown`Qt::MarkdownText` 4) 自适应`Qt::AutoText`. 
+  纯文本就是普通的文本, 富文本则可以通过支持诸如html标签之类的东西, 从而使文本变得更加丰富, word文本的格式就是富文本的一种, markdown则是程序员群体常用的一种文本格式, 笔者超过九成的文档都是markdown写的, 也包括这篇, 相比富文本, markdown更加轻量, 并且对于程序开发也很受用, 自动, 那就是自然是让`QLabel`自己根据文本内容进行猜测
+- `pixmap`
+  指`QLabel`内部的图片
+- `scaledContents`
+  布尔值, 主要是标签有图片之后再使用, 因为文本没什么好拉伸的, `true`表示让图片自动拉伸填充标签. `false`则表示不会.
+- `alignment`
+  表示对齐方式. 可以设置水平和垂直方向如何对齐. 对于大多数文字来说, 似乎使用的都是左对齐, 从上往下排布, 当然文字上的情况下, 你也可以让它水平竖直居中.
+- `wordWrap`
+  布尔值, 描述是否让文本自动换行. 有时, `QLabel`的文本很长, 在加上`QLabel`没有像`QTextEdit`那样有滚动条, 所以就会造成文本的后半部分显示不出来, 此时将该属性设置为`true`, 便能使得其中的文本自动换行.
+- `indent`
+  设置文本缩进, 水平和垂直方向都生效
+- `margin` 
+  用于设置内部文本与边框之间的间距, 上下左右都会生效, 这一点, 它不同于`indent`, 因为`indent`最多只有两个方向有效(具体哪两个方向取决于`alignment`对齐方式)
+- `openExternalLinks`
+  当文本中含有`url`的时候, 描述用户点击该链接允不允许跳转到相应的网络资源上.
+- `buddy`
+  `QLabel`特有的属性, 可以为`QLabel`关联一个伙伴, 比如, 关联一个`QCheckBox`, 此时, 点击`QLabel`就相当于点击了``QCheckBox`.
+
+------
+
+下面的项目用于展示`textFormat`属性
+
+我们首先在设计界面创建三个`QLabel`
+
+![image-20251006154215865](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006154215865.png)
+
+![image-20251006154704419](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006154704419.png)
+
+运行, 因为这里我们并没有使用各个语言的特有内容, 所以看起来一样
+
+![image-20251006154839754](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006154839754.png)
+
+这里, 我们使用富文本的`<b></b>`标签, 表示加粗字体
+
+![image-20251006155021784](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006155021784.png)
+
+我们就可以看到, `Plain`将其视为正常的文本内容, 而富文本则渲染出对应的效果
+
+同样的`~~ ~~`表示删除线,
+
+![image-20251006155258727](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006155258727.png)
+
+----
+
+下面, 我们使用`QLabel`显示图片
+
+首先, 我们在设计界面创建`QLabel`
+
+![image-20251006163520987](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006163520987.png)
+
+然后我们引入资源文件
+
+![image-20251006164621070](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006164621070.png)
+
+我们打算让整个标签覆盖整个窗口, 然后让照片平铺在标签上
+
+![image-20251006165326815](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006165326815.png)
+
+![image-20251006165340242](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006165340242.png)
+
+我们看到, 比例不是特别对, 所以我们可以手动调整一下窗口的大小
+
+但此时我们就发现了一个问题 
+
+![image-20251006165437276](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006165437276.png)
+
+窗口大小被用户手动改变后, `QLabel`并没有自适应.
+
+这也好理解, 因为我们是在构造函数里, 设置`QLabel`的大小, 而在之后, 它的大小也会不变, 即使窗口本身的大小又人为地调整.
+
+所以接下来我们要做的, 就是想办法, 让`QLabel`能够跟着窗口自已改变大小
+
+此处，我们就能够引出 Qt 用来描述用户交互行为的另一个概念——事件。用户与界面的交互大致可以分为两类：一类是对控件状态的改变，属于**状态性的行为**；另一类则是一种持续发生的改变，属于**过程性的行为**。在上述操作中，当我们通过拖拽方式调整窗口大小时，就会触发 `resize` 事件。需要注意的是，这个事件在拖拽过程中会持续不断地发生，而并非只触发一次。
+
+下面, 我们就将通过重写`QWidget`的`resizeEvent`虚函数来展现其中的具体过程.
+
+![image-20251006170944309](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006170944309.png)
+
+![image-20251006170827865](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006170827865.png)
+
+这里的形参`event`就描述了触发这一事件时, 窗口尺寸的数据
+
+再次运行, 我们就能看到它输出了一个初始尺寸
+
+![image-20251006171116159](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171116159.png)
+
+现在用鼠标拖拽窗口
+
+然后我们就看到它连续触发了很多次
+
+![image-20251006171226757](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171226757.png)
+
+所以只要我们在这里也顺带改变一下标签的尺寸就行
+
+![image-20251006171649595](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171649595.png)
+
+运行
+
+![image-20251006171705656](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171705656.png)
+
+改变窗口尺寸
+
+![image-20251006171736634](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171736634.png)
+
 
 
 # 完
