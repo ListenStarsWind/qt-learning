@@ -2733,6 +2733,335 @@ PS D:\Repository\qt-lab\Qt6.5.3\QPushButtonShortCut>
 
 ![image-20251006171736634](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251006171736634.png)
 
+----
 
+接下来我们看有关文本对齐, 自动换行, 缩进, 边距的属性.
+
+设计界面拖入一个标签, 我们看到, 标签在默认情况下没有显现边框, 所以不太好观察
+
+![image-20251007102722536](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007102722536.png)
+
+为此, 我们可以选中标签, 在右下角的属性界面去找`shape`, 也就是形状属性. 并且我们在其中也能看到`QLabel`的继承体系
+
+![image-20251007102927825](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007102927825.png)
+
+把`frameShape`改成`box`效果
+
+![image-20251007103119765](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007103119765.png)
+
+![image-20251007103342373](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007103342373.png)
+
+接下来我们以此为蓝本, 复制出其它三个
+
+![image-20251007103511230](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007103511230.png)
+
+![image-20251007104537049](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007104537049.png)
+
+与对齐方向有关的枚举都是以比特位编码的形式取值的, 所以使用按位或就可以将它们都设置上去, 这在Linux那边我们也见到过
+
+![image-20251007104711091](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007104711091.png)
+
+![image-20251007105051351](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007105051351.png)
+
+![image-20251007105104998](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007105104998.png)
+
+![image-20251007105121804](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007105121804.png)
+
+![image-20251007105333509](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007105333509.png)
+
+![image-20251007105432139](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007105432139.png)
+
+接下来我们看自动换行, 对于一个长文本来说, 标签可能显示不全
+
+```cpp
+ // 设置自动换行
+    ui->label_2->setText(
+        "星照夜, 夜映星; 星在夜中看光明. 光照夜, 夜藏光, 光与夜里梦相生. "
+        "梦生影, 影化形, 形在光中又化影. 影照星, 星入梦, 梦回夜色生无穷. "
+        "夜里有光, 光中有夜, 星在光里呼吸着夜; 夜在星下凝望着光, 一息一照, 一照一长. "
+        "长生不灭, 灭而复生, 生在光中, 灭在夜中; 星在夜里照夜的星, 夜在星中藏星的梦. "
+        "光行夜海, 夜载光舟, 星是灯, 梦是流; 一明一暗, 一来一往, 万象生于这呼吸的荡漾."
+        );
+```
+
+![image-20251007111944248](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007111944248.png)
+
+此时我们就可以设置自动换行
+
+![image-20251007112256738](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007112256738.png)
+
+缩进
+
+![image-20251007112643825](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007112643825.png)
+
+![image-20251007113237970](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007113237970.png)
+
+不过对于Qt的缩进有些是要注意的, 我们挑一个更长的文本
+
+```cpp
+ // 设置缩进
+    ui->label_3->setText(
+        "吾闻二世少子也，不当立，当立者乃公子扶苏。"
+        "扶苏以数谏故，上使外将兵。"
+        "今或闻无罪，二世杀之。百姓多闻其贤，未知其死也。"
+        "项燕为楚将，数有功，爱士卒，楚人怜之。"
+        "或以为死，或以为亡。"
+        "今诚以吾众诈自称公子扶苏﹑项燕，为天下唱，宜多应者。"
+        );
+    ui->label_3->setWordWrap(true);
+    ui->label_3->setIndent(50);
+```
+
+![image-20251007113754221](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007113754221.png)
+
+我们发现, Qt的缩进并不是我们以为的首行缩进, 是所有行都缩进, 这与其它的图形化界面技术, 比如网页前端的CSS不太相同, 它们是首行缩进.
+
+接下来是边距
+
+```cpp
+//设置边距
+    ui->label_4->setText(
+        "吾闻二世少子也，不当立，当立者乃公子扶苏。"
+        "扶苏以数谏故，上使外将兵。"
+        "今或闻无罪，二世杀之。百姓多闻其贤，未知其死也。"
+        "项燕为楚将，数有功，爱士卒，楚人怜之。"
+        "或以为死，或以为亡。"
+        "今诚以吾众诈自称公子扶苏﹑项燕，为天下唱，宜多应者。"
+        );
+    ui->label_4->setWordWrap(true);
+    ui->label_4->setMargin(50);
+```
+
+边距的特点就是它是四个方向都生效的, 缩进只有一个方向
+
+![image-20251007115129333](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007115129333.png)
+
+这里我们就能看到, 整个文本看上去似乎都被边距吞了.
+
+这里我们再缩小一下
+
+![image-20251007115318450](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007115318450.png)
+
+---
+
+在最后, 我们演示一下`QLabel`的伙伴功能. 这个功能主要是配合单选框或者复选框给用户更多的交互方式. 直接用语言描述或许有些苍白, 接下来, 我们就直接通过一个项目来演示.
+
+我们创建两个`QRadioButton`和与之对应的`QLabel`
+
+![image-20251007133008075](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007133008075.png)
+
+你可能疑惑为什么标签内的文本要这样写, 因为这是让伙伴发挥作用的要求.
+
+接下来, 我们去代码那边, 建立伙伴关系
+
+![image-20251007133246259](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007133246259.png)
+
+运行后, 我们发现点击标签不会有任何反应, 并且文本中的取地址符`&`也消失了
+
+![image-20251007133405910](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007133405910.png)
+
+但是如果我们使用`ALT A`或者`ALT B`选择对应的单选框
+
+![image-20251007133515716](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007133515716.png)
+
+这是一种弱快捷键, 必须是`ALT`作为修饰键, 按下对应的快捷键, 就能选择对应的单选或者复选按钮
+
+我们`Creator`上面的那些选项用的也是这个逻辑
+
+![image-20251007133754862](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007133754862.png)
+
+你按下`atl f`也会打开文件选项
+
+#### QLCDNumber
+
+`QLCDNumber`是最早期的显示控件之一, 在它身上有一些历史上的痕迹.
+
+首先, 就它的样子来说, 是一种写实风, 就是我们以前可能用到的LCD数字显示屏, 就像实体计算器上的显示屏
+
+![3118_0_l](https://md-wind.oss-cn-nanjing.aliyuncs.com/3118_0_l.jpg)
+
+核心属性如下
+
+- `intValue `
+  表示`QLCDNumber`要显示的整数
+- `value`
+  表示`QLCDNumber`要显示的浮点数
+  这两个`value`不是完全独立的, 如果设置`value`是`1.5`, 那么去`intVal`那里读出来则是`2`, 并且这两个`value`的写接口, 也不是`set`作为前缀, 而是都使用`display`来写. 至于为什么这样做, 可能是太早了, 当时随口叫了一个意思很明确的意思, 后来叫久了, 改不回来了.
+- `digitCount`
+  表示显示的数位.
+- `mode`
+  显示数字的形式, `QLCDNumber:Dec`十进制, `QLCDNumber:Hex`十六进制, `QLCDNumber:Bin`二进制, `QLCDNumber:Oct`八进制, 这个枚举的命名域和现代Qt也不太一样, 要注意, 小数点后的内容只有十进制才能显示
+- `segmentStyle`
+  显示风格. `QLCDNumber::Flat`, 数字呈现在一个平坦的表面上, `QLCDNumber::Outline`, 数字有清晰的轮廓和阴影效果, `QLCDNumber::Filled`, 数字被填充颜色, 并且颜色与背景区分开来.
+- `smallDecimalPoint `
+  使用更小的小数点
+
+下面我们就使用`QLCDNumber`写一个倒计时程序
+
+首先设计界面拖入一个`QLCDNumber`
+
+![image-20251007152521330](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007152521330.png)
+
+在右下角可以看到与之有关的各类属性
+
+![image-20251007152610231](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007152610231.png)
+
+风格改成`Outline`就是这样
+
+![image-20251007152708584](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007152708584.png)
+
+`flat`
+
+![image-20251007152747963](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007152747963.png)
+
+最后还是切换回最开始的`filled`
+
+![image-20251007153159874](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007153159874.png)
+
+![image-20251007153144052](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007153144052.png)
+
+如果要实现每一秒种减一的效果, 则需要使用"定时器". 这种周期性执行某个逻辑的需求在开发中其实还是很常见的, 但C++标准库中并没有定时器, 不过Boost里面有定时器, Qt作为侧重于开发的一个框架, 也有定时器, 并且定时器也是高度融合到信号槽的机制中的. Qt中的定时器叫做`QTimer`, 在`start`后, 每过指定的时间, `QTimer`就会发出`timeout`信号, 利用这个信号, 就可以调用某个槽函数.
+
+![image-20251007160832101](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007160832101.png)
+
+![image-20251007160843930](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007160843930.png)
+
+<video src="https://md-wind.oss-cn-nanjing.aliyuncs.com/2025-10-07%2015-50-00.mp4"></video>
+
+-------
+
+可能有人会问, 能不能通过其它方式达到相同的效果呢? 那在这里我们就直接写代码, 看看相应的现象.
+
+这次我们就在设计界面里赋初值
+
+![image-20251007161324439](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007161324439.png)
+
+第一种方案, 既然和时间有关, 那能不能直接调用`sleep`呢? 当然, 由于我们使用的编译器是MinGW, 它用不了Linux的系统接口`sleep`, Windows系统接口也就是`Sleep`,  尽管能用, 但既然Qt是跨平台的, 那我们就用C++11的`sleep_for`
+
+![image-20251007162855897](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007162855897.png)
+
+此时我们运行, 就会发现, 构建成功后窗口迟迟不出现, 直到过了十秒后, 才弹出一个已经归零的倒计时
+
+![image-20251007163013278](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007163013278.png)
+
+这是因为, 这段代码是在构造函数里运行的, 但构造函数只是把程序的各个内存级别的数据初始化, 真正的弹窗弹出是`show`执行之后,之后便一直在`exec`里进行主循环.
+
+![image-20251007163625210](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007163625210.png)
+
+并且, `show`和`exec`也不是虚函数, 你也没办法拿它们做文章, 因为它们内部有很多敏感操作, 为了程序安全, 是不允许直接改的.
+
+于是就有了第二种方案, 这也是我们重点想说的, 我们再引入一个线程, 这样的话, 就不会把主线程给卡住, 他就能顺利地把`show`执行完毕.
+
+![image-20251007164701535](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007164701535.png)
+
+一运行, 就运行出错了
+
+![image-20251007164729669](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007164729669.png)为什么会出现进程终止这种情况呢? 因为它内部隐藏了很多的状态, 为了保护它们的线程安全, Qt禁止其它线程对于界面的直接修改, 而在上面, 我们做的正是做了Qt禁止的事.
+
+#### QProgressBar
+
+`ProgressBar`就是我们常见的进度条-- 当进程正在进行耗时操作时, 就给用户一个进度条, 意在提醒用户, 我没有卡, 正在做事, 你不要急. 让用户省点心.
+
+核心属性有
+
+- `minimum`
+  描述进度条最小值, 一般就是0
+- `maximum`
+  描述进度条最大值, 一般就是100
+- `value`
+  描述进度条当前显示的数值
+- `alignment`
+  描述文本在进度条中的对齐方式
+  `Qt::AlignLeft`左对齐, `Qt::AlignRight`右对齐, `Qt::AlignCenter`居中对齐, `Qt::AlignJustify`两端对齐
+- `textVisible `
+  进度条的数字文本是否可见
+- `orientation `
+  进度条的方向是水平还是垂直
+- `invertAppearance `
+  进度条增长的方向是正向的还是反向的(从右往左)
+- `textDirection`
+  文本的朝向
+- `format `
+  展示的数字格式
+  `%p`表示进度的百分比, `%v`表示进度的数值, `%m`表示剩余的时间, 单位毫秒, `%t`, 表示总时间
+
+进度条的代码逻辑一般是, 设置一个定时器, 每隔一段时间就发信号进入槽函数, 然后在槽函数里计算一下当前工作的进度, 比如如果是把文件读到内存里, 那就看看已经读了多少, 又还剩下多少, 计算一下百分比, 再重新设置一下`value`. 那在这里我们并没有实际的应用场景, 所以我们在槽函数里面就直接加一了.
+
+![image-20251007180903758](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007180903758.png)
+
+![image-20251007183749007](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007183749007.png)
+
+运行
+
+<video src="https://md-wind.oss-cn-nanjing.aliyuncs.com/2025-10-07%2018-38-59.mp4"></video>
+
+我们看到, 设计界面和实际运行的效果并不一致, 很明显的一点就是, 设计界面使用的颜色是蓝绿色, 而实际运行使用的则是绿色.
+
+出现这种情况的原因是因为, 在默认情况下, 也就是你没有设置`styleSheet`的前提下, Qt对于控件样式的绘制依赖于`QWidget`的另一个属性, 叫做`style`, 你也许说, 不就缺了一个`sheet`吗? 有什么区别, 但实际上, 区别是很大的, `sheet`是基于C++语言本身的样式绘制引擎,叫做`QStyle`, 而`styleSheet`我们在前面也说过, 它是基于`QSS`的绘制引擎, 它们两个的技术路线是完全不同的. 
+
+`QStyle`的样式是建议性的, 实际由平台自己决定, `QSS`则是强制性的, 平台必须照做. 所以尽管`QStyle`的颜色属性使用的确实是蓝绿色, 但实际上操作系统最终使用了绿色(难怪我平时见到的进度条从来都是绿色). 记住这里的建议性和强制性, 马上我们还会遇到.
+
+接下来我们就使用QSS, 也就是样式表的形式, 修改进图条的样式, 为了方便起见, 这里我们就单纯改一下样式
+
+进入设计界面, 我们直接进入样式列表的编辑界面
+
+![image-20251007193735824](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007193735824.png)
+
+因为进度条实际上是由很多更小的组件组成的, 所以在进行样式设置时, 就需要指定到底是给谁进行设置, `QProgressBar::chunk`中的`chunk`指的就是进度条的主体, 也就是那个色块, 把它的背景设置成`#00CDDA`.
+
+设置过后我们感觉设计界面的进度条怪怪的, 我们不管他
+
+![image-20251007193854991](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007193854991.png)
+
+运行
+
+![image-20251007193915789](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007193915789.png)
+
+我们发现这个运行结果其实也有些不太对.
+
+为什么会出现这种情况呢? 还是因为我们之前说过的, `QSS`的优先级别比`QStyle`要高, 所以你只要使用了`QSS`, 它就会只使用`QSS`的内容, 相当于把原来`QStyle`的属性给丢弃掉了, 就像我安装火绒之后, Windows安全中心就什么都不管那种. 在这里解决的方案也很简单, 把QSS给补全就行了.
+
+```CSS
+QProgressBar {
+    background-color: #E6E6E6;  /*进度条背景*/
+    text-align: center;         /* 文字局中 */
+    color: #000000;             /* 文字颜色为黑 */
+}
+
+QProgressBar::chunk {
+    background-color: #00CDDA;  /*进度条色块是蓝绿色*/
+    color: #FFFFFF;             /* 高亮文字为白色 */
+}
+```
+
+![image-20251007195828346](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007195828346.png)
+
+这里我们可能并没有完全补齐, 但在视觉效果差不多了.
+
+不过QSS本身似乎不支持把文字放到边框的右边, 不过如果你真的很想要的话, 大不了可以把字体给隐藏, 然后右边放一个标签, 我还看到一些其他方案, 但这些方案都比较麻烦, 我自己也没有亲自试试可不可行, 所以就不说了.
+
+-----
+
+在最初的进度条版本中, 不知你是否看到一个细节, 那就是我的头文件都是放在`.cpp`里的
+
+![image-20251007200656643](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007200656643.png)
+
+(新加的内容是我打印`QStyle`属性的, 在这里不用管)
+
+但是, 我们在头文件那里命名定义了一个`QTimer*`, 但编译却没有出错
+
+![image-20251007200834285](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251007200834285.png)
+
+这是为什么呢? 其实这里就牵扯到Qt的一个小特性.
+
+在以前的Qt中有一个很特殊的头文件, 它里面主要写的是Qt中各种类的前置声明, 而这个头文件又会被其他头文件包含, 最终被我们包含. 因为有前置声明, 所以你用一下它们的指针是完全可以的, 所以头文件这里直接用是可以的 , 但实际使用那就需要真正的头文件了, 所以我们在`.cpp`这里还是要包含.
+
+你可能会疑惑, Qt为什么会这样设计? 其实这和Qt本身并没有关系, 而和C++这个语言本身有关. C++有一个弊病, 那就是相比其他语言来说, 它的编译速度很慢, 为什么慢呢? 主要就在于头文件的文本展开和编译, 别的语言为什么比较快?那是因为别的语言有个叫模块的东西, 模块就相当于已经把头文件提前编译了一下, 所以最后编译的时候自然就很快, Qt这种前置声明的做法就是一种缓兵之计, 它想尽可能减轻头文件嵌套包含的复杂程度, 写了前置声明之后, 那就能稍微减少一些.
+
+你可能会问, 那这个头文件在哪里, 我想看看, 那我在这里就告诉你, 看不了, 因为即使是我这个电脑上较老的那个Qt5.14.2已经不使用这个技术路线了, 更别说是这个Qt6.
+
+在C++20, 引入了类似于其他语言模块的机制, 想要从源头上解决编译速度慢的问题, Qt也进行了适配, 所以现在Qt用的技术路线都是模块. 当然, 为了兼容以前的C++, `include`仍旧是可以使用的.
+
+实际工作中, 我们也不用操心编译慢的问题, 对于资本更为雄厚的互联网公司来说, 它们会专门建立一个编译集群, 这些集群里有很多高性能的服务器, 编译的时候, 把代码提交上去, 然后服务器集群分布编译, 这样速度就会快很多.
 
 # 完
