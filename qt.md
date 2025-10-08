@@ -3064,4 +3064,354 @@ QProgressBar::chunk {
 
 实际工作中, 我们也不用操心编译慢的问题, 对于资本更为雄厚的互联网公司来说, 它们会专门建立一个编译集群, 这些集群里有很多高性能的服务器, 编译的时候, 把代码提交上去, 然后服务器集群分布编译, 这样速度就会快很多.
 
+#### QCalendarWidget
+
+`Calendar  `就是日历. 一般来说, 日历常被用来用来进行日期选择, 这样最起码就不用考虑用户手动输日期时输错的处理了.
+
+核心属性如下:
+
+- `selectDate`
+  选中的日期
+- `minimumDate`
+  最小日期, 一般选默认的就行
+- `maximumDate`
+  最大日期, 一般不用改
+- `firstDayOfWeek`
+  每周第一天是周几
+- `gridVisible `
+  是否显示表格的边框
+- `selectionMode`
+  是否允许选择日期
+- `navigationBarVisible`
+  日历上方标题是否显示
+- `horizontalHeaderFormat`
+  日历上方标题显示的日期格式
+- `verticalHeaderFormat `
+  日历第一列显示的内容格式
+- `dateEditEnabled`
+  是否允许⽇期被编辑
+
+有关的重要信号包括
+
+- `selectionChanged() `
+  选中日期发生改变时发出
+- `activated(const QDate&)`
+  双击日期或者按下回车时发出, 参数表示选中的日期
+- `currentPageChanged(int,  int) `
+  当年份⽉份改变时发出，形参表⽰改变后的新年份和⽉份 
+
+下面我们就直接新建项目
+
+拖入后, 直接转到槽
+
+![image-20251008105311688](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008105311688.png)
+
+运行, 此时选择一个日期, 就会输出相应内容
+
+![image-20251008105623626](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008105623626.png)
+
+`QDate`里面还有个`to_string`方法
+
+![image-20251008110000983](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008110000983.png)
+
+### QInput
+
+#### QLineEdit
+
+`QLineEdit`用来表示单行输入框, 可以输入一段文本, 但是不能换行
+
+核心属性如下
+
+- `text`
+  输入框中的文本, 可以通过代码或者用户输入来修改
+- `inputMask`
+  描述一个规则, 用于约束输入内容
+- `maxLength`
+  最大长度
+- `frame`
+  是否添加边框
+- `echoMode`
+  回显方式
+  `QLineEdit::Normal` 输入什么显示什么
+  `QLineEdit::Password`输入的实际内容将会被隐藏, 用以保护隐私信息
+  `QLineEdit::NoEcho`不回显
+- `cursorPosition`
+  光标位置
+- `alignment `
+  文字对齐方式, 分为水平和垂直两个方向
+- `dragEnabled`
+  是否允许以文字拖拽的形式输入内容
+- `readOnly `
+  文本内容是否是只读的
+- `placeHolderText `
+  输入框内容为空时, 显示的提示文本
+- `clearButtonEnabled `
+  提供一个按钮, 能够清空输入内容
+
+核心信号有
+
+- `void cursorPositionChanged(int old, int new)`
+  鼠标移动时发出信号, 参数表示新旧位置
+
+- `void editingFinished()`
+  当按返回或者回车时, 或者行编辑失去焦点时, 发出此信号
+
+- `void returnPressed()`
+  当返回或回⻋键按下时发出此信号, 如果设置了验证器, 则必须验证通过, 才能触发
+
+- `void selectionChanged()`
+  当选中的文本发生改变时, 触犯该信号
+
+- `void textChanged(const  QString& text)`
+  当`QLineEdit`的文本内容改变时, 触发该信号, 通过代码方式修改也会触发
+
+- `void textEdited  `
+  当`QLineEdit`的文本内容改变时, 触发该信号, 通过代码方式修改不会触发
+
+-------
+
+下面, 我们就写一个表单, 让用户输入个人信息
+
+![image-20251008135802437](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008135802437.png)
+
+![image-20251008140028390](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008140028390.png)
+
+一旦输入内容, 占位文本就会消失
+
+![image-20251008140103059](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008140103059.png)
+
+打开清除按钮后, 点击右侧`×`号即可清除文本
+
+![image-20251008140311140](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008140311140.png)
+
+![image-20251008140747270](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008140747270.png)
+
+![image-20251008141144252](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008141144252.png)
+
+我们知道手机号码是有固定格式的, 在这里我们就格式化约束一下
+
+![image-20251008141357346](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008141357346.png)
+
+此处的零表示只能输入数字吗也就是说这个输入框只能输入11个数字, 而且在显示上将会按照344的划分用`-`隔开
+
+![image-20251008141607746](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008141607746.png)
+
+`inptMask`只能进行简单校验, 等会儿, 我们会通过正则表达式, 来进行更严格更复杂的校验.
+
+最后在确认按钮, 我们收集输入的信息, 将其打包, 输出
+
+![image-20251008142859148](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008142859148.png)
+
+![image-20251008142843813](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008142843813.png)
+
+当然, 真实情况下, 会打包输出到网络, 然后到服务器.
+
+-----
+
+接下来, 我们使用正则表达式, 对输入的内容进行验证. 其实我们在之前, 已经遇到过很多次正则表达式了, 这是计算机中的一个通用概念, 用于定量描述目标字符串的特征.
+
+正则表达式的具体语法比较复杂, 我们也不会特意去记, 确实难记, 一般都是需要用到的时候查查表, 比如[此处](https://learn.microsoft.com/zh-cn/previous-versions/visualstudio/visual-studio-2008/ae5bf541(v=vs.90))就是微软提供的正则表达式语法表. 然后自己写出来之后再找个[测试器](https://regextester.buyaocha.com/)测试一下
+
+![image-20251008144102303](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008144102303.png)
+
+对于手机号码来说, 它有如下的两个特征: 1) 由11个数字构成 2) 开头是一, 于是我们就可以用正则表达式描述给计算机.
+
+我们新创建一个项目, 分别含有一个`QLineEdit`和`QPushButton`, 默认情况下, 确认按钮将不可使用, 直到, 输入内容符合正则表达式约束内容.
+
+此处直接通过设计界面属性界面规定按钮默认情况下无法使用
+
+![image-20251008150150798](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008150150798.png)
+
+这里我们为`LineEdit`注册了一个验证器, 但具体这个验证器怎么用, 则需要依靠槽函数
+
+![image-20251008151653203](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008151653203.png)
+
+当文本改变时, 进行验证
+
+![image-20251008151756045](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008151756045.png)
+
+使用`textChanged`和`textEdited`都差不多, 这里我们选择后者
+
+验证器对象`QRegularExpressionValidator`含有方法`State validate(QString&, int&)`用于进行验证, 注意`QString&`是普通引用, `int&`表示出错范围, 返回值`State`是个枚举类型, 表示检验的三种结果, 
+
+| 返回值                     | 枚举值 | 含义                     | 举例说明                                                     |
+| -------------------------- | ------ | ------------------------ | ------------------------------------------------------------ |
+| `QValidator::Invalid`      | 0      | 明显无效，完全不符合要求 | 输入字母 “a” 时，手机号验证器会认为无效, 因为开头必须是一, 阻止进一步输入 |
+| `QValidator::Intermediate` | 1      | 目前有效, 但不完整       | 输入 “13” 时，虽然还不是完整手机号，但并未出错, 可以继续让用户输入 |
+| `QValidator::Acceptable`   | 2      | 完全有效，符合规则       | 输入 “13812345678” 时，验证通过                              |
+
+在此处, 电话号码应该完整并且不出错, 即完全有效, 才使能按钮(使能的意思就是enable为true)
+
+![image-20251008154018078](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008154018078.png)
+
+运行, 输入11个数字就不能继续输入, 并且也输入不了其它字符, 第一个数字也只能输入`1`
+
+在实际工作中, 我们也一般不亲自写正则表达式, 而是直接去网上搜一份, 然后复制过来, 当然你要能看懂那个正则表达式是什么意思.
+
+---------
+
+接下来, 我们写一个很常用的功能, 密码的双重确认输入框.
+
+在我们注册账号设置密码时, 为确保, 没有无意中输错字符, 一般会设置一个确认密码, 当密码与确认密码一致后才可进行下一步.
+
+这里有三个组件, 两个输入框, 一个标签, 输入框输入密码, 标签输出提示
+
+![image-20251008155044405](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008155044405.png)
+
+![image-20251008161322495](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008161322495.png)
+
+`textEdited`实际上有参数, 但我们这里槽函数其实并不用, 所以实现干脆不带参
+
+![image-20251008161420463](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008161420463.png)
+
+![image-20251008161526798](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008161526798.png)
+
+![image-20251008161539195](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008161539195.png)
+
+-----------
+
+最后, 我们还是讲密码, 我们为密码框增加一个效果: 我们给密码框旁边加个复选框, 勾选就可以显示密码的实际内容
+
+理论上, 这其实并不难, 勾选之后槽函数改一下属性, 不过因为很常用, 所以我们还是写一下.
+
+![image-20251008162636886](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008162636886.png)
+
+这里我们选择`toggled`信号函数, 这是因为如果不选我们还要把风格调回隐藏模式, 所以状态变化更合适
+
+![image-20251008162914464](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008162914464.png)
+
+![image-20251008163149094](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008163149094.png)
+
+运行
+
+![image-20251008163128271](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008163128271.png)
+
+![image-20251008163137622](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008163137622.png)
+
+#### QTextEdit
+
+`QTextEdit`表示多行输入框, 也是一个富文本&markdown编辑器, 并且能在内容超出范围后自动提供滚动条.
+
+Qt中的多行输入有两种, `QTextEdit`和`QPlainText`, 它们的区别就是, `QPlainText`只支持纯文本, 但对于`QText`来说, 纯文本, 富文本, markdown都是支持的.其它都差不多.
+
+核心属性
+
+- `markdown`
+  有`setMakrdown`, 可以将代码形式的输入字符串解释为`markdown`格式
+
+- `html`
+  有`setHtml`, 可以将代码形式的输入字符串解释为`html`格式
+
+- `placeHolderText`
+  占位文本
+
+- `readOnly`
+  不可编辑, 只读
+
+- `undoRedoEnable`
+  是否开启`undo`(`CTRL Z`撤销)`redo`(`CYRL Y`恢复)功能
+
+- `autoFormating`
+  开启自动格式化
+
+- `tabstopWidth `
+
+  `tab`键占据几个空格
+
+- `overwriteMode`
+  是否开启覆写模式
+  计算机的文本处理器有两种模式, 一是我们平常默认使用的插入模式, 在字符串中输入字符会插入字符, 二是覆写模式, 此时在字符串中输入字符会顶替掉后面的字符, vim的`R`模式就是这样, 键盘上的`INS`可以开启覆写模式, 不过某些软件可能已经不支持覆写. 
+
+- `acceptRichText `
+  是否接收富文本内容
+
+- `verticalScrollBarPolicy `
+  垂直方向滚动条的出现策略
+  `Qt::ScrollBarAsNeeded`默认行为, 文本超出输入框自动出现滚动条
+  `Qt::ScrollBarAlwaysOff`总是关闭滚动条
+  `Qt::ScrollBarAlwaysOn`总是显示滚动条
+
+核心信号
+
+- `textChanged()`
+  文本内容改变时触发
+- `selectionChanged()  `
+  选中范围改变时触发
+- `cursorPositionChanged()`
+  光标移动时触发
+- `undoAvailable(bool)`
+  进行`undo`操作时触发, 参数表示能不能继续`undo`
+- `redoAvailable(bool) `
+  进行`redo`操作时触发, 参数表示能不能继续`redo`
+- `copyAvaiable(bool)`
+  文本被选中, 取消选中时触发.
+
+---
+
+第一个项目, 将输入框中的内容同步显示的标签中
+
+![image-20251008174700952](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008174700952.png)
+
+![image-20251008175215017](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008175215017.png)
+
+![image-20251008175254781](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008175254781.png)
+
+----
+
+第二个项目, 使用各种各样的信号函数, 观察具体的触发情况
+
+`selectionChanged()`, 选中范围改变时触发
+
+![image-20251008180356057](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008180356057.png)
+
+运行
+
+![image-20251008180523729](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008180523729.png)
+
+选中一个字符
+
+![image-20251008180554247](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008180554247.png)
+
+选中两个字符
+
+![image-20251008180617653](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008180617653.png)
+
+`cursorPositionChanged()`光标位置改变时触发
+
+![image-20251008181011026](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008181011026.png)
+
+![image-20251008180959972](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008180959972.png)
+
+前移一个字符
+
+![image-20251008181044339](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008181044339.png)
+
+前移两个字符
+
+![image-20251008181122781](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008181122781.png)
+
+`redoAvailable(bool) undoAvailable(bool)` 执行`undo redo`时激活
+
+![image-20251008182011519](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182011519.png)
+
+![image-20251008182045553](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182045553.png)
+
+undo
+
+![image-20251008182119803](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182119803.png)
+
+redo
+
+![image-20251008182145094](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182145094.png)
+
+`copyAvaiable(bool)`文本被选中或者取消选中激活
+
+![image-20251008182351684](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182351684.png)
+
+![image-20251008182459586](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182459586.png)
+
+![image-20251008182545564](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182545564.png)
+
+![image-20251008182609726](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182609726.png)
+
 # 完
