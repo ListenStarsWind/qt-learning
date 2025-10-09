@@ -3414,4 +3414,162 @@ redo
 
 ![image-20251008182609726](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251008182609726.png)
 
+#### QComboBox
+
+组合框实际上就是我们平常说的下拉框: 每一个框由很多项组合在一起, 由用户选择其中的一种., 核心属性如下:
+
+- `currentText `
+  用户当前选择的项文本
+- `currentIndex`
+  选中项的下标, 下标从零开始, 没有选中,任何项, 则为`-1`
+- `editable `
+  布尔值, 打开后, 允许用户在框中输入内容, 下拉框将会依据输入内容列出合适的项, 此时它相当于`QLineEdit`的高配版, 也支持设置`validator`, 即验证器
+- `iconSize`
+  用于设置下拉框小三角形的大小
+- `maxCount`
+  最多允许有多少个条目
+
+常用方法:
+
+- `addItem(const QString&) `
+  添加一个项
+- `currentIndex()`
+  获取当前项的下标
+- `currentText() `
+  获取当前条目的文本内容
+
+常用信号:
+
+- `activated(int)   activated(const QString & text) `
+  用户激活选项时发出, 什么叫做"激活选项", 就是说, 用户点开下拉框, 鼠标滑过某个选项, 选项高亮, 这就叫做激活
+- `currentIndexChanged(int)   currentIndexChanged(const QString  & text) `
+  选中的项发生改变时激活, 无论是用户还是开发者通过代码都会触发它
+- `editTextChanged(const QString &  text) `
+  当编辑框中的文本发生改变时发出, 当然是在`editable`打开的前提下
+
+---
+
+我们要写的第一个项目就是使用`QComboBox`重构之前的麦当劳点餐
+
+![image-20251009103901733](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009103901733.png)
+
+同样的, 无论是代码, 还是图形化界面, 其实都可以为下拉框添加项
+
+右键, 选择编辑项目
+
+![image-20251009104106933](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009104106933.png)
+
+加号添加新的项
+
+![image-20251009104523376](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009104523376.png)
+
+剩下两个我们就用代码
+
+![image-20251009104746029](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009104746029.png)
+
+然后我们对按钮写一个槽函数, 汇总内容, 输出
+
+![image-20251009105113785](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009105113785.png)
+
+运行
+
+![image-20251009105138084](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009105138084.png)
+
+![image-20251009105239438](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009105239438.png)
+
+-----
+
+下拉框中的内容, 很多时候不是代码写死的, 而是通过文件/网络加载数据得到的. 下面的程序, 就与文件操作有关.
+
+![image-20251009110735539](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009110735539.png)
+
+接下来我们就直接在项目文件夹下, 创建文件
+
+```shell
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox> wsl echo -e "芙宁娜\\n温迪\\n胡桃\\n娜维娅\\n宵宫" >> config.txt
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox> cat config.txt
+芙宁娜
+温迪
+胡桃
+娜维娅
+宵宫
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox>
+```
+
+我们这里就使用`fstream`也就是文件流读取文件, 我们知道, 从硬盘到CPU这个方向叫做`input`, 反过来就叫做`output`, 它是以CPU为主语的, 没有CPU的计算机叫做铁墓.
+
+![image-20251009225811010](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009225811010.png)
+
+运行
+
+我们发现文件打开失败
+
+![image-20251009225935882](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009225935882.png)
+
+为什么呢? 我们的本意是好的: 使用绝对路径是一个非常危险的行为, 所以我们这里使用了相对路径, `config.txt`是在我们的源码目录中的, 但是, 程序是在构建目录中运行的, 所以它的默认工作目录是构建目录, 也就是说, 代码的相对路径和程序的相对路径, 相对的不是同一个目录, 为此我们有两种处理办法, 一是通过调整`CMakeLists.txt`, 即项目配置文件来将`config.txt`也输出或者说拷贝到构建目录, 第二种方法, 就是让这个配置文件注册到`qrc`里面, 用`qrc`的那一套, 在这里, 我们就使用第一种, 一方面这比较简单, 就是加个`CMake`指令, 二是`qrc`是为资源文件准备的, 把文本文件放在里面比较怪. 而且我们也说过, `CMake`是通用也是目前主流的C++构建系统, 所以我们就用`CMake`的形式了
+
+之前我们在`CMake`课程里学习到了`configure_file`指令, 我们那时说, 这个指令可以对模版文件中的内容进行替换, 常用来生成包配置文件, 这里, 我们就使用`configure_file`的另一个功能, 那就是纯粹的文本复制.
+
+![image-20251009231244942](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009231244942.png)
+
+```cmake
+configure_file(
+    ${CMAKE_SOURCE_DIR}/config.txt # 输入文件   源码目录下的config.txt
+    ${CMAKE_BINARY_DIR}/config.txt # 输出文件   源码目录下的config.txt
+    COPYONLY					 # 不进行任何文本替换
+)
+```
+
+![image-20251009231855074](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009231855074.png)
+
+运行, 此时我们就看到预期的结果
+
+![image-20251009231949610](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251009231949610.png)
+
+那这里要注意的就是, 程序真正用的是构建目录的`config.txt`, 而不是源码目录的
+
+```shell
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox> wsl ls -al
+total 36
+drwxrwxrwx 1 wind wind  4096 Oct  9 23:19 .
+drwxrwxrwx 1 wind wind  4096 Oct  9 10:57 ..
+-rwxrwxrwx 1 wind wind   930 Oct  9 10:57 .gitignore
+-rwxrwxrwx 1 wind wind  2280 Oct  9 23:19 CMakeLists.txt
+-rwxrwxrwx 1 wind wind 23059 Oct  9 11:56 CMakeLists.txt.user
+drwxrwxrwx 1 wind wind  4096 Oct  9 10:57 build
+-rwxrwxrwx 1 wind wind    41 Oct  9 11:15 config.txt
+-rwxrwxrwx 1 wind wind   175 Oct  9 10:57 main.cpp
+-rwxrwxrwx 1 wind wind   675 Oct  9 11:47 widget.cpp
+-rwxrwxrwx 1 wind wind   345 Oct  9 11:32 widget.h
+-rwxrwxrwx 1 wind wind   911 Oct  9 11:32 widget.ui
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox> # 这个就是源码目录 build下面的就是构建目录
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox> cd .\build\
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox\build> wsl ls -al
+total 0
+drwxrwxrwx 1 wind wind 4096 Oct  9 10:57 .
+drwxrwxrwx 1 wind wind 4096 Oct  9 23:19 ..
+drwxrwxrwx 1 wind wind 4096 Oct  9 23:19 Desktop_Qt_6_5_3_MinGW_64_bit-Debug
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox\build> cd .\Desktop_Qt_6_5_3_MinGW_64_bit-Debug\
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox\build\Desktop_Qt_6_5_3_MinGW_64_bit-Debug> wsl ls -al
+total 1700
+drwxrwxrwx 1 wind wind    4096 Oct  9 23:19 .
+drwxrwxrwx 1 wind wind    4096 Oct  9 10:57 ..
+drwxrwxrwx 1 wind wind    4096 Oct  9 10:57 .cmake
+drwxrwxrwx 1 wind wind    4096 Oct  9 23:19 .qt
+drwxrwxrwx 1 wind wind    4096 Oct  9 10:57 .qtc
+drwxrwxrwx 1 wind wind    4096 Oct  9 10:57 .qtc_clangd
+-rwxrwxrwx 1 wind wind   53519 Oct  9 10:57 CMakeCache.txt
+drwxrwxrwx 1 wind wind    4096 Oct  9 23:19 CMakeFiles
+-rwxrwxrwx 1 wind wind   10899 Oct  9 23:19 Makefile
+-rwxrwxrwx 1 wind wind 1659811 Oct  9 11:47 QComboBox.exe
+drwxrwxrwx 1 wind wind    4096 Oct  9 11:32 QComboBox_autogen
+drwxrwxrwx 1 wind wind    4096 Oct  9 10:57 Testing
+-rwxrwxrwx 1 wind wind    2800 Oct  9 23:19 cmake_install.cmake
+-rwxrwxrwx 1 wind wind      41 Oct  9 23:19 config.txt
+-rwxrwxrwx 1 wind wind     943 Oct  9 10:57 qtcsettings.cmake
+PS D:\Repository\qt-lab\Qt6.5.3\QComboBox\build\Desktop_Qt_6_5_3_MinGW_64_bit-Debug>
+```
+
+另外要注意的是, 我们这里做不到热更新, 因为项内容的初始化是在构造函数里面的, 所以如果你想改变内容的话, 需要修改构建目录下的文本内容, 然后重新运行, 或者, 修改源码目录下的文本, 然后重构运行.
+
 # 完
