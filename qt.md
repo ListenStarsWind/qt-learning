@@ -3572,4 +3572,139 @@ PS D:\Repository\qt-lab\Qt6.5.3\QComboBox\build\Desktop_Qt_6_5_3_MinGW_64_bit-De
 
 另外要注意的是, 我们这里做不到热更新, 因为项内容的初始化是在构造函数里面的, 所以如果你想改变内容的话, 需要修改构建目录下的文本内容, 然后重新运行, 或者, 修改源码目录下的文本, 然后重构运行.
 
+#### QSpinBox
+
+`QSpinBox`是微调框, 就是有两个小三角形, 用户可以通过点击它们调整框中的数字, 此处的`Spin`其实是一个省略语, 更完整的意思是`Spin up`, 意为快速的变换, 启动, 旋转什么的, 是一个专业用语, 常被用于天体物理, 计算机行业. 所以你不要问, 为什么它是旋转框? 它不是旋转框, 只是说, 用户在点击上下三角形按钮的时候, 数字可以快速的变化.
+
+除了`QSpinBox`还有一个`QDoubleSpinBox`, 它们差不多, 只不过显示的数字类型不同, 一个是整数, 另一个是小数.
+
+`QSpinBox`的关键属性如下:
+
+- `value `
+  显示的数字
+- `singleStep`
+  每次调整的"步长", 按下一次按钮数据变化多少
+- `displayInteger`
+  数字的进制, 设为`10`, 那就是十进制, 设为`2`, 那就是二进制
+- `minimum`
+  最小值
+- `maximum`
+  最大值
+- `suffix`
+  后缀, 给数值加个单位
+- `prefix`
+  前缀, 在数字前面加点说明符
+- `wrapping`
+  数字太长是否允许换行
+- `frame`
+  是否带边框
+- `alignment `
+  文字对齐方式
+- `readOnly`
+  是否只读
+- `buttonSymbol`
+  按钮上的图标
+  `UpDownArrows`上下箭头形式
+  `PlusMinus`加减号形式
+  `NoButtons`没有按钮
+- `accelerated`
+  长按按钮是否连续快速调整: 以长按时间为正比, 缩短连发间隔
+- `correctionMode `
+  修正模式: 当用户输入有误时应该如何回到有效值上
+  `QAbstractSpinBox::CorrectToPreviousValue`, 如果用户输入一个无效的值, 那么`QSpinBox`会回到上一个有效值, 比如`QSpinBox`表示非负数, 最初是`1`, 输入`-1`, 回车确认, 会变回`1`
+  `QAbstractSpinBox::CorrectToNearestValue`, 如果用户输入一个无效的值, 那么`QSpinBox`会变成与之最为接近的有效值, 比如同样是上面的例子, 回车后会变成`0`
+- `keyboardTrack`
+  是否开启键盘跟踪
+  设为`true`, 每次在输入框输入一个数字, 都会触发一次`valueChanged()`和`textChanged()`信号
+  设为`false`, 只有在最终按下`enter`或者输入框失去焦点, 才会触发`valueChanged()`和`textChanged()`信号
+
+核心信号
+
+- `textChanged(QString)`
+  `QSpinBox`文本发生改变时, 触发, 参数`QString`带有前缀和后缀
+- `valueChanged(int)`
+  `QSpinBox`文本发生改变时, 触发, 参数`int`表示当前的值
+
+下面, 我们写的仍旧是麦当劳点餐, 但是加了个数
+
+![image-20251010105133279](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010105133279.png)
+
+![image-20251010105154122](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010105154122.png)
+
+运行
+
+![image-20251010105330848](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010105330848.png)
+
+我们可以输入无效值, 但失焦或回车, 都会杯修正
+
+![image-20251010105349446](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010105349446.png)
+
+![image-20251010105441012](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010105441012.png)
+
+#### QDateTimeEdit
+
+`QDateTimeEdit`是基于`QSpinBox`用于微调时间的控件, 除了`QDtaeTimeEdit`外, 还有`QDateEdit`以及`QTimeEdit`, 它们都差不多, 所以我们只说`QDateTimeEdit`, 其核心属性如下
+
+- `dateTime`
+  时间日期的值, 形如`2000/1/1 0:00:00`
+- `date`
+  单纯日期的值, 形如`2000/1/1`
+- `time`
+  单纯时间的值, 形如`0:00:00`
+- `displayFormat `
+  日期时间格式, 形如`yyyy/M/d H:mm:ss`, 其中, 四个`y`表示时间使用四位数表示, `mm`和`ss`同理. 
+  `y`表示年份, `M`表示月份, `d`表示日期, `H`表示小时, `m`表示分钟, `s`表示秒, 需要注意的是, 不同的技术体系有着各自的格式化占位符, 不要特意记, 防止混淆
+- `minimumDateTime `
+  最小时间日期
+- `maximumDateTime `
+  最大时间日期
+- `timeSpec `
+  描述时间标准
+  `Qt::LocalTime`显示本地时间
+  `Qt::UTC `显示协调世界时
+  `Qt::OffsetFromUTC`显示相对于`UTC`的偏移量(也就是时差)
+  互联网中最为古老的且仍在使用的协议之一----网络时间协议使用的正是协调世界时, 各地的本地时间都是用协调世界时通过时差算出来的.
+
+-----
+
+下面我们就写一个时间计算器
+
+设计界面拖入两个`QDateTimeEdit`, 分别最为起始时间和终止时间, 标签负责显示计算结果
+
+![image-20251010121131035](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010121131035.png)
+
+![image-20251010122251259](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010122251259.png)
+
+运行, 我们就可以看到相应的时间显示
+
+![image-20251010122325472](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010122325472.png)
+
+Qt中与时间相关的类天然支持时间的计算
+
+![image-20251010123425153](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010123425153.png)
+
+![image-20251010123455692](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010123455692.png)
+
+![image-20251010123527521](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010123527521.png)
+
+我们也可以以秒数为基准计算, 正巧上面它也不计算小于一天的值, 我们可以换算成小时
+
+![image-20251010124733019](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010124733019.png)
+
+![image-20251010124821884](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010124821884.png)
+
+----
+
+不过呢, Qt的`daysTo`结果其实和我们日常的日期计算有点出入, 实际上, 它的计算方式是起始时间到终止时间之间经过午夜的次数, 这意味着从`23:55`到第二天`0:05`将被视为一天., 但在我们日常中, 这肯定不能被算作一天.
+
+我们再运行一下
+
+![image-20251010125506406](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010125506406.png)
+
+解决方法也很简单, 我们全部用秒算就行了
+
+![image-20251010125836710](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010125836710.png)
+
+![image-20251010125923627](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010125923627.png)
+
 # 完
