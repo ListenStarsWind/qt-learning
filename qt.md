@@ -3707,4 +3707,161 @@ Qt中与时间相关的类天然支持时间的计算
 
 ![image-20251010125923627](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251010125923627.png)
 
+#### QDial
+
+`dial`有收音机调节盘的意思, 当然, 中国人一般不叫做调节盘, 而是称之为旋钮.
+
+核心属性如下:
+
+- `value`
+  被设置的数值
+- `minimum`
+  最小值
+- `maximum`
+  最大值
+- `singStep`
+  按下方向键的时候改变的步长
+- `pageStep`
+  按下`pageUp/pageDown`的时候改变的步长
+- `sliderPosition `
+  界面上旋钮显示的初始位置
+- `tracking `
+  外观是否会根据数值变化, 默认为`true`, 一般不改
+- `wrapping`
+  是否允许循环调整.
+  即数值如果超过最大值, 是否允许回到最小值
+- `notchesVisible`
+  是否显示刻度线
+- `notchTarget`
+  刻度线的精度, 数字越大, 刻度线越稀疏
+
+核心信号
+
+- `valueChanged(int) `
+  数值改变时触发
+- `rangeChanged(int, int) `
+  范围变化时触发
+
+---
+
+下面我们就写一个程序, 用`QDial`调整窗口的不透明度 
+
+我们先看看`QDial`长什么样
+
+![image-20251011091825444](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011091825444.png)
+
+运行
+
+![image-20251011091952938](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011091952938.png)
+
+我们就可以使用鼠标, 方向键或者`Page Up  Page Down`, 来调整旋钮, 并且, 默认情况下是无法做到连续旋转的, 鼠标表面上能旋转多圈, 但圈与圈之间有明显的割裂感, 键盘上的键则根本不能转圈.
+
+在属性界面, 我们也能看出`QDial`的继承体系, 可以看到, 在`QDial`之上, 还有一个`QAbstrcatSlider`, 也就是抽象滑块
+
+![image-20251011092542103](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011092542103.png)
+
+勾选`wrapping`, 就可以连续旋转, 勾选`notchesVisible`就会有刻度线
+
+![image-20251011092924860](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011092924860.png)
+
+如果我们把`notchTarget`改成更大的`10`, 就能看到, 刻度线变得稀疏了
+
+![image-20251011093107623](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011093107623.png)
+
+接下来, 因为我们知道不透明度的取值是`0~1`, 所以我们把旋钮的取值范围设置为`0~100`, 初始值设置成`100`, 代表完全不透明
+
+![image-20251011093523597](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011093523597.png)
+
+这里我们选择的信号函数是`valueChanged(int)`, 即值改变时触发, `int`就是改变后的值
+
+![image-20251011093650134](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011093650134.png)
+
+我们先打印一下, 看看它的数值改变
+
+![image-20251011093914167](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011093914167.png)
+
+稍微调整我们便能够看到效果
+
+![image-20251011094013895](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011094013895.png)
+
+接下来其实就很简单, 我们把`value`除以`100`, 这样就能得到`0~1`之间的小数, 当然, 要注意类型转换
+
+![image-20251011094344324](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011094344324.png)
+
+此时我们就可以调整它的透明度了
+
+![image-20251011094452011](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011094452011.png)
+
+#### QSlider   
+
+`QSlider`是一个滑动条, 它也是继承自`QAbstrcatSlider`, 所以与`QDial`有很多相似之处.
+
+核心属性
+
+- `value `
+  所设置的数值
+- `minimum `
+  最小值
+- `maximum`
+  最大值
+- `singleStep`
+  按下方向键改变的步长
+- `pageStep `
+  按下`Page Up / Page Down`时候改变的步长
+- `sliderPosition`
+  滑动条显示的初始位置
+- `tracking`
+  外观是否会跟踪数值变化. 默认为`true`, 一般不修改
+- `orientation`
+  滑动条的方向是水平还是垂直
+- `invertedAppearance`
+  是否要翻转滑动条的默认调节方向
+- `tickPosition`
+  刻度的位置
+- `tickInterval `
+  刻度的密集程度
+
+核心信号
+
+- `valueChanged(int)`
+  数值改变时触发
+- `rangeChanged(int, int) `
+  范围变化时触发
+
+---
+
+下面我们就写这样的一个程序: 设置水平方向和竖直方向的两个滑动条, 用来调整窗口的大小
+
+首先在设置界面, Qt其实上已经为我们提供了水平和竖直两个方向上的`Slider`
+
+![image-20251011100152507](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011100152507.png)
+
+不过, 我们也可以在属性界面调整它们的方向
+
+![image-20251011100242179](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011100242179.png)
+
+对于水平方向上的`slider`, 其值从左往右逐渐变大, 而对于竖直方向上的`slider`, 从下往上依次变大, 或者你也可以看滑块的初始位置, 它们的默认值都是`0`, 对于竖直方向来说, 处于我们调整窗口的目的, 当然希望他和窗口的变化方向一致, 也就是从下往上依次变小, 所以我们使用`invertedAppearance`翻转它的初始方向
+
+![image-20251011104341376](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011104341376.png)
+
+接下来我们来写代码, 之前在`QLabel`的时候, 我们获取到了我这台电脑的默认窗口尺寸`800 × 600`, 所以这里我们就把滑块的最小值设置成`400 × 300`, 最大值设置成`1920 × 1080`,  两个方向上的滑块默认值就使用窗口的默认大小
+
+![image-20251011105405632](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011105405632.png)
+
+这里要注意, 必须是先设置好范围, 然后再设置初始值, 因为由设计界面所做的信号槽函数`connect`, 是`ui->setupUi(this)`里的, 这意味着, 在随后修改它们的值, 也会触发槽函数, 那这又和顺序有什么关系呢? 如果你先设置初始值, 由于`QSlider`的默认最大值是`99`. 所以就会设置不进去, `QSlider`就会触发槽函数, 把窗口的大小改成`99`.
+
+运行
+
+![image-20251011105856843](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011105856843.png)
+
+![image-20251011105919665](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251011105919665.png)
+
+### 多元素控件
+
+接下来我们来说多元素控件. 顾名思义, 多元素控件里面有多个元素: 这些元素可能是字符串, 更加复杂的数据结构, 也可能是多个图片.  其中, 较为常用的六个多元素控件是`QListWidget   QListView   QTableWidget   QTableView   QTreeWidget   QTreeView`, 当然从命名风格来看, 它们其实是一组一组的, 前两个是列表, 中间两个是列表, 最后两个是树状结构.
+
+另外, 我们这里还要说一下`xxWidget`和`xxView`这两个概念.  在软件设计中, 有一种经典设计思路叫做`MVC`, `M`指`model`, 也就是程序的数学模型, 描述数据的组织形式和运转原理, `V`指`view`, 那就是面向用户的程序视图, `C`指`controller`,即控制器, 负责控制`model`和`view`之间的数据交互. `xxView`那就是只有一个`view`, 其它都没有, 这意味着什么数据的存储表示, 数据与界面之间的交互都需要我们手动设计, `xxWidget`那就是三位一体, 或者说是一种对`xxView`的再封装, 为其也增加了`model`和`controller`, 我们可以直接拿过来用, 而对他的各种控制就是使用`xxWidget`内置的各种API接口实现.
+
+所以`xxView`更加底层, 缺点当然是不能直接拿过来用, 优点就是自由度高, 只要水平够, 就可以随心所欲的实现各种各样的功能, 从而可能实现`xxWidget`所具备的能力, `xxWidget`则是反过来的.
+
 # 完
