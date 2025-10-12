@@ -3862,6 +3862,189 @@ Qt中与时间相关的类天然支持时间的计算
 
 另外, 我们这里还要说一下`xxWidget`和`xxView`这两个概念.  在软件设计中, 有一种经典设计思路叫做`MVC`, `M`指`model`, 也就是程序的数学模型, 描述数据的组织形式和运转原理, `V`指`view`, 那就是面向用户的程序视图, `C`指`controller`,即控制器, 负责控制`model`和`view`之间的数据交互. `xxView`那就是只有一个`view`, 其它都没有, 这意味着什么数据的存储表示, 数据与界面之间的交互都需要我们手动设计, `xxWidget`那就是三位一体, 或者说是一种对`xxView`的再封装, 为其也增加了`model`和`controller`, 我们可以直接拿过来用, 而对他的各种控制就是使用`xxWidget`内置的各种API接口实现.
 
-所以`xxView`更加底层, 缺点当然是不能直接拿过来用, 优点就是自由度高, 只要水平够, 就可以随心所欲的实现各种各样的功能, 从而可能实现`xxWidget`所具备的能力, `xxWidget`则是反过来的.
+所以`xxView`更加底层, 缺点当然是不能直接拿过来用, 优点就是自由度高, 只要水平够, 就可以随心所欲的实现各种各样的功能, 从而可能实现`xxWidget`所具备的能力, `xxWidget`则是反过来的.  
+
+在下面, 我们只会讲`xxWidget`, 这是因为`xxView`如果要讲的话, 就相当于要把`xxWidget`的原理说一遍了, 而本篇文章是用来学会Qt的, 不是用来解构Qt的.
+
+#### QListWidget
+
+`QListWidget`能够显示一个纵向的列表, 核心属性如下:
+
+- `currentRow`
+  当前选中的是第几行(从第零行开始)
+- `count`
+  一共有第几行
+- `sortingEnabled`
+  是否允许排序
+- `isWrapping`
+  是否允许换行
+- `itemAlignment`
+  元素的对齐方式
+- `selectRectVisibe`
+  被选中的元素矩形是否可见
+- `spacing`
+  元素之间的间隔
+
+核心方法有
+
+- `addItem(const QString& label)     addItem(QListWidget* item)`
+  列表中添加元素或者说项(尾插). 其中每一项的具体细节, 比如字体, 图片, 大小等
+- `currentItem()`
+  返回`QListWidgetItem*`, 表示当前选中的元素, 没有选中, 返回空指针
+- `setCurrentItem(QListWidgetItem* item)`
+  设置选中哪个元素
+- `setCurrentRow(int row)`
+  设置选中第几行的元素
+- `insertItem(const QString& label, int row)    insertItem(QListWidgetItem* item, int row)`
+  在指定的位置(`row`前)插入元素, 或者你也可以认为插入的元素将会位于`row`行--在第二个元素前插入, 新插入的元素就变成了新的第二.
+- `item(int row)`
+  返回`QListWidgetItem*`, 表示第`row`行的元素
+- `takeItem(int row)`
+  删除指定行的元素, 返回`QListWidgetItem*`表示是哪个元素被删除了. (`take`有拿开取走的意思)
+
+核心方法
+
+- `currentItemChanged(QListWidgetItem* current, QListWidgetItem* old)`
+  选中不同的元素时会触发, 参数是当前选中的元素和上一个选中的元素.
+- `currentRowChanged(int)`
+  选中不同元素时会触发, 参数是当前选中元素的行数
+- `itemClicked(QListWidgetItem* item)`
+  点击某个元素时触发
+- `itemDoubleClicked(QListWidgetItem* item)`
+  双击某个元素时触发
+- `itemEntered(QListWidgetItem* item)`
+  鼠标进入元素时触发
+
+有关`QListWidgetItem`的核心方法
+
+- `setFont`
+  设置字体
+- `setIcon`
+  设置图标
+- `setHidden`
+  设置隐藏
+- `setSizeHint`
+  设置尺寸
+- `setSelected`
+  设置是否选中
+- `setText`
+  设置文本
+- `setTextAlignment`
+  设置文本对齐方式
+
+----
+
+下面我们写一个程序: 一个简单的列表, 并在GUI中为其添加基础的添加删除方法
+
+首先是对于`QListWidget`的创建, 抛开纯代码方式不谈, 它其实有两种设计模式创建方法
+
+第一种方法就是直接把它拖进来
+
+![image-20251012103520533](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012103520533.png)
+
+第二种是把`List View`拖进来
+
+![image-20251012103704162](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012103704162.png)
+
+右键, 变形为`QListWidget`
+
+之后我们再引入一个`QLineEdit`, 作为新建元素的输入框, 两个按钮
+
+![image-20251012104253697](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012104253697.png)
+
+对于`QListWidget`的初始化, 我们也有多种方式可以实现
+
+可以直接在设计界面中编辑
+
+![image-20251012104613075](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012104613075.png)
+
+而在代码中, 我们也介绍了两种接口
+
+![image-20251012104923359](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012104923359.png)
+
+这里的淡蓝色矩阵就是`selectRectVisibe`中的矩阵
+
+![image-20251012105104096](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012105104096.png)
+
+如果使用`QListWidgetItem`的话, 就可以使用之前列举的方法, 进行更精细的调整, 不过这里我们就不一一设置了
+
+![image-20251012105627701](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012105627701.png)
+
+接下来我们为"新增"按钮添加对应逻辑的槽函数
+
+![image-20251012110653534](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012110653534.png)
+
+![image-20251012110757733](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012110757733.png)
+
+![](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012110809577.png)
+
+接下来我们为"删除"按钮增加对应的槽函数
+
+![image-20251012111354694](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012111354694.png)
+
+运行
+
+先鼠标选中
+
+![image-20251012111605342](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012111605342.png)
+
+然后再删除
+
+![image-20251012111624450](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012111624450.png)
+
+接下来我们再增加一个关于`currentItemChanged`的槽函数
+
+![image-20251012113255711](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012113255711.png)
+
+运行
+
+![image-20251012113317309](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012113317309.png)
+
+![image-20251012113345082](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251012113345082.png)
+
+另外, 你或许注意到了, 我的代码里面的`>= !=`他会显示数学那种样式, 这是因为我的Qt使用的是微软的`Cascadia Code`字体, 这个字体有一个连字效果, 尽管你输入的是`>=   !=`, 计算机存储的, 以及编译器读的都还是`>=    !=`, 但是它在显示的时候会被渲染成数学形式.
+
+#### QTabelWidget
+
+接下来我们介绍`QTabelWidget`, 它与上面的`QListWidget`差不多, 只不过, `QTabelWidget`表示的事一个表格, 有多个列和多个行, 而不像`QListWidget`那样就是一个列表, 核心方法如下:
+
+- `item(int row, int column)`
+  根据指定行数列数获取指定的`QTabelWidgetItem*`
+- `setItem(int row, int column, QTabelWidgetItem*)`
+  根据行数列数设置表格的元素
+- `currentItem()`
+  返回被选中的元素`QTabelWidgetItem*`
+- `currentRow()`
+  被选中元素是第几行
+- `currentColumn()`
+  被选中元素是第几列
+- `row(QTabelWidgetItem*)`
+  获取指定item是第几行
+- `column(QTabelWidgetItem*)`
+  获取指定item是第几列
+- `rowCount()`
+  获取总行数
+- `columnCount()`
+  获取总列数
+- `insertRow(int row)`
+  在第row行插入新行
+- `insertColumn()`
+  在第Column列插入新列
+- `removeRow(int row)`
+  删除第row行
+- `removeColumn(int column)`
+  删除第column列
+- `setHorizontalHeaderItem(int column, QTabelWidgetItem*)`
+  设置指定列的表头
+- `setVerticalHeaderItem(int column, QTabelWidgetItem*)`
+  设置指定行的表头
+
+所谓表头, 就是每行或者每列最边上的那个说明性文字, 比如一个课程表, 第一节, 第二节, 周一, 周二就是表头
+
+核心信号有
+
+- `cellClicked(int row, int column) `
+
+  
 
 # 完
