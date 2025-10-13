@@ -4004,23 +4004,23 @@ Qt中与时间相关的类天然支持时间的计算
 
 另外, 你或许注意到了, 我的代码里面的`>= !=`他会显示数学那种样式, 这是因为我的Qt使用的是微软的`Cascadia Code`字体, 这个字体有一个连字效果, 尽管你输入的是`>=   !=`, 计算机存储的, 以及编译器读的都还是`>=    !=`, 但是它在显示的时候会被渲染成数学形式.
 
-#### QTabelWidget
+#### QTableWidget
 
-接下来我们介绍`QTabelWidget`, 它与上面的`QListWidget`差不多, 只不过, `QTabelWidget`表示的事一个表格, 有多个列和多个行, 而不像`QListWidget`那样就是一个列表, 核心方法如下:
+接下来我们介绍`QTableWidget`, 它与上面的`QListWidget`差不多, 只不过, `QTableWidget`表示的事一个表格, 有多个列和多个行, 而不像`QListWidget`那样就是一个列表, 核心方法如下:
 
 - `item(int row, int column)`
-  根据指定行数列数获取指定的`QTabelWidgetItem*`
-- `setItem(int row, int column, QTabelWidgetItem*)`
+  根据指定行数列数获取指定的`QTableWidgetItem*`
+- `setItem(int row, int column, QTableWidgetItem*)`
   根据行数列数设置表格的元素
 - `currentItem()`
-  返回被选中的元素`QTabelWidgetItem*`
+  返回被选中的元素`QTableWidgetItem*`
 - `currentRow()`
   被选中元素是第几行
 - `currentColumn()`
   被选中元素是第几列
-- `row(QTabelWidgetItem*)`
+- `row(QTableWidgetItem*)`
   获取指定item是第几行
-- `column(QTabelWidgetItem*)`
+- `column(QTableWidgetItem*)`
   获取指定item是第几列
 - `rowCount()`
   获取总行数
@@ -4034,9 +4034,9 @@ Qt中与时间相关的类天然支持时间的计算
   删除第row行
 - `removeColumn(int column)`
   删除第column列
-- `setHorizontalHeaderItem(int column, QTabelWidgetItem*)`
+- `setHorizontalHeaderItem(int column, QTableWidgetItem*)`
   设置指定列的表头
-- `setVerticalHeaderItem(int column, QTabelWidgetItem*)`
+- `setVerticalHeaderItem(int column, QTableWidgetItem*)`
   设置指定行的表头
 
 所谓表头, 就是每行或者每列最边上的那个说明性文字, 比如一个课程表, 第一节, 第二节, 周一, 周二就是表头
@@ -4044,7 +4044,100 @@ Qt中与时间相关的类天然支持时间的计算
 核心信号有
 
 - `cellClicked(int row, int column) `
-
+  单元格被点击时触发
   
+- `cellDoubleClicked(int row, int column)`
+  单元格被双击时触发
+  
+- `cellEntered(int row, int column) `
+  鼠标进入单元格时触发
+  
+- `currentCellChanged(int row, int column, int previousRow, int previouColumn)`
+  选择不同单元格时触发
+  
+
+下面  我们就做一个学生信息表, 行表头就不管了, 就用序号了.
+
+![image-20251013092941958](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013092941958.png)
+
+接下来我们初始化`tableWidget`, 当然, 他也有两种方法, 一是通过代码方式, 二是通过设计界面, 这里我们就不使用设计界面的方式了, 因为这种方式有明显的bug, 我们推荐用代码, 以避免各种稀奇古怪的问题
+
+![image-20251013101946740](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013101946740.png)
+
+运行
+
+![image-20251013102003767](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013102003767.png)
+
+接下来我们往里面填充内容
+
+![image-20251013175407959](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013175407959.png)
+
+这里我因为个人原因换了一个编辑器, 我更喜欢`code`
+
+此时我们运行, 就可以看到相应的效果了
+
+![image-20251013175611078](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013175611078.png)
+
+接下来我们写四个按钮的逻辑
+
+先写新增一行
+
+我们的逻辑是看看当前有多少行, 这样就知道新行应该插入到那个row了
+
+![image-20251013181626076](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013181626076.png)
+
+运行
+
+![image-20251013181811891](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013181811891.png)
+
+正常
+
+![image-20251013181830706](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013181830706.png)
+
+那我们就可以直接在程序上编辑
+
+![image-20251013181946582](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013181946582.png)
+
+如果我们新增很多的话, 也能看到自动出现了滚动条
+
+![image-20251013182040779](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013182040779.png)
+
+接下来我们写删除选定行
+
+![image-20251013182335829](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013182335829.png)
+
+运行
+
+![image-20251013182423285](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013182423285.png)
+
+删除
+
+![image-20251013182439021](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013182439021.png)
+
+然后是新增一列
+
+![image-20251013183252708](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183252708.png)
+
+运行
+
+![image-20251013183349257](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183349257.png)
+
+当然这里没有吧输入框在`clear`, 下面写
+
+![image-20251013183435922](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183435922.png)
+
+最后我们写删除列
+
+![image-20251013183646087](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183646087.png)
+
+运行
+
+![image-20251013183738976](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183738976.png)
+
+删除
+
+![](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183753275.png)
+
+ 
 
 # 完
