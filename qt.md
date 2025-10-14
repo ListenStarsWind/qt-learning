@@ -4138,6 +4138,137 @@ Qt中与时间相关的类天然支持时间的计算
 
 ![](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251013183753275.png)
 
- 
+ #### QTreeWidget
+
+`QTreeWidget`表示一个树形控件, 里面的每个元素, 都是一个`QTreeWidgetItem`, 每个`QTreeWidgetItem`内部又可以包含很多列, 每个列都可以放一个文本或者图标.
+
+在 `QTreeWidget` 里，不管是顶层节点还是子节点，它们本质上都是同一种东西：`QTreeWidgetItem`。但如果所有节点都用一套方式来操作，就会显得逻辑混乱。比如，根节点与整棵树的显示、刷新关系更密切，并且它实际上只是提供一个挂载点，它的生命周期与 `QTreeWidget` 相同。
+ 因此，Qt 在接口设计上，分成了三层：
+
+- 正如上面所说的，根节点尽管构成形式和其他节点相同，但在 `QTreeWidget` 上扮演的角色完全不同，因此它被隐藏并抽象成 `QTreeWidget` 本身。如果确实需要，也可以通过 `invisibleRootItem()` 把它取出来，当作普通的 `QTreeWidgetItem` 来操作。
+- 紧挨着根节点的那一层，也就是根节点的直接子节点，被称为顶层节点，它们由 `QTreeWidget` 的接口来管理。
+- 其它更深层的节点，则通过 `QTreeWidgetItem` 的方法，与它们的父节点建立联系并进行管理。
+
+`QTreeWidget`的核心方法如下
+
+- `clear`
+  清空所有子节点
+- `addTopLevelItem(QTreeWidgetItem* item)`
+  新增顶层节点
+- `topLevelItem(int index) `
+  获取指定下标的顶层节点
+- `topLevelItemCount() `
+  获取顶层节点的数目
+- `indexOfTopLevelItem(QTreeWidgetItem* item)`
+  查询顶层节点在根节点中的下标
+- `takeTopLevelItem(int index) `
+  删除指定的顶层节点, 返回`QTreeWidgetItem*`表示被删除的元素
+- `currentItem()`
+  以`QTreeWidgetItem*`的形式获取当前选中节点
+- `setCurrentItem(QTreeWidgetItem* item) `
+  选中指定的节点
+- `setExpanded(bool) `
+  展开或者关闭节点
+- `setHeaderLabel(const QString& text) `
+  设置`QTreeWidget`的`header`名称
+
+`QTreeWidget `的核心信号
+
+- `currentItemChanged(QTreeWidgetItem* current, QTreeWidget* old)`
+  切换选中元素时触发
+- `itemClicked(QTreeWidgetItem* item, int col) `
+  点击元素时触发
+- `itemDoubleClicked(QTreeWidgetItem* item, int col)`
+  双击元素时触发
+- `itemEntered(QTreeWidgetItem* item, int col)`
+  鼠标进入时触发
+- `itemExpanded(QTreeWidgetItem* item)`
+  元素被展开时触发
+- `itemCollapsend(QTreeWidgetItem* item)  `
+  元素被折叠时触发
+
+`QTreeWidgetItem`核心属性
+
+- `text`
+  持有的本文
+- `textAlignment `
+  文本对齐方式
+- `icon`
+  持有的图标
+- `font`
+  文本字体
+- `hidden`
+  是否隐藏
+- `disabled`
+  是否禁用
+- `expand`
+  是否展开
+- `sizeHint `
+  尺寸大小
+- `selected`
+  是否选中
+
+`QTreeWidgetItem`的核心方法
+
+- `addChild(QTreeWidgetItem* child)`
+  新增子节点
+- `childCount()`
+  子节点的个数
+- `child(int index)`
+  以`QTreeWidgetItem*`的形式获取到指定下标的子节点
+- `takeChild(int index)`
+  删除对应下标的子节点
+- `removeChild(QTreeWidgetItem* child)`
+  删除对应的子节点
+- `parent()`
+  获取该元素的父节点
+
+---
+
+首先, 我们还是在设计模式里创建控件, (尽管看上去像Qt5的风格, 但实际上这是code外调Qt6 Designer)
+
+![image-20251014111026987](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014111026987.png)
+
+接下来我们就通过`Designer`来填充`QTreeWidget`的内容
+
+![image-20251014112634642](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014112634642.png)
+
+运行
+
+![image-20251014112858746](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014112858746.png)
+
+![image-20251014112911404](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014112911404.png)
+
+接下来我们用代码的形式来实现同样的填充效果
+
+![image-20251014125224829](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014125224829.png)
+
+运行
+
+![image-20251014125517396](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014125517396.png)
+
+接下来我们去写那三个按钮
+
+这三个按钮其实都没有什么太需要注意的地方, 这里说一下删除选中元素, 注意, 由于`QTreeWidget`的分层设计, 这里删除的项是需要分类讨论的, 顶层节点虽然实际上并不是真的顶层节点, 但是它们被视为顶层节点, 其体现在于, 顶层节点的父节点是空节点, 对于这种情况, 我们就不能用一般节点的方法删除, 而是要用`QTreeWidget`的方法, 这样才能删除顶层节点/
+
+![image-20251014225527876](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225527876.png)
+
+运行
+
+![image-20251014225605382](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225605382.png)
+
+![image-20251014225616500](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225616500.png)
+
+![image-20251014225637348](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225637348.png)
+
+![image-20251014225651014](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225651014.png)
+
+删除顶层节点
+
+![image-20251014225713840](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225713840.png)
+
+删除一般节点
+
+![image-20251014225732549](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225732549.png)
 
 # 完
