@@ -4271,4 +4271,186 @@ Qt中与时间相关的类天然支持时间的计算
 
 ![image-20251014225732549](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251014225732549.png)
 
+### 容器类控件
+
+容器类控件，顾名思义，是 Qt 中用于“装载”并组织其他控件的特殊控件，以模块化的方式管理界面。它们可以将按钮、标签、输入框等控件组合在一起，使界面更清晰有条理。在上文中，我们直接将控件拖入主窗口（继承自 `QWidget`，称为 `this`），父对象是主窗口。而使用容器类控件后，我们可以通过 Qt Designer 拖放控件到容器中，或通过代码方式指定父对象，使控件的父对象变为容器控件（如 `QGroupBox`、`QTabWidget`）。除了充当容器，容器类控件还有其他功能（如界面切换或事件管理），我们将在具体使用时再深入探讨。
+
+#### QGroupBox
+
+对于`QGroupBox`即分组框来说, 其功能如名字一样, 就是起到分组作用, 我们可以把功能相关的控件都放到一个`QGroupBox`里, 从而进行统一管理. 它本身并没有参与核心业务逻辑.
+
+核心属性如下:
+
+- `title`
+  `QGroupBox`的标题
+- `alignment`
+  `QGroupBox`内部内容的对齐方式
+- `flat`
+  是否启用"扁平"模式
+- `checkable`
+  是否可选择.
+  设为`true`, 则在`title`前方多出一个勾选框
+- `checked`
+  描述分组框的选择状态, (前提是`checkable`为`true`)
+
+----
+
+接下来我们还是使用之前的麦当劳点菜程序, 只不过我们这次会把`Combo Box`和`Spin Box`放到一个`QGroupBox`
+
+这里我们需要注意的是, 如果对整个`groupBox`复制, 我们会看到复制之后选中的仍旧是`groupBox`,这意味着, 此时你对其进行粘贴, 新`groupBox`将会被粘贴到旧`groupBox`中
+
+![image-20251015114016504](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114016504.png)
+
+![image-20251015114035323](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114035323.png)
+
+![image-20251015114100740](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114100740.png)
+
+所以说, 在粘贴前, 我们应该先点击一下`widget`, 确认已经选中`widget`后再更新, 你可以直接点一下窗口, 也可以点击这里的对象检查器
+
+![image-20251015114240282](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114240282.png)
+
+然后再粘贴
+
+![image-20251015114318196](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114318196.png)
+
+之后我们在属性界面里直接修改
+
+![image-20251015114412415](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114412415.png)
+
+![image-20251015114729157](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114729157.png)
+
+运行
+
+![image-20251015114851107](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015114851107.png)
+
+我们对第一个分组框选择`flat`, 再次运行
+
+![image-20251015115005167](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015115005167.png)
+
+我们就能看到扁平模式是这个效果
+
+![image-20251015115105029](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015115105029.png)
+
+![image-20251015115147061](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015115147061.png)
+
+![image-20251015115218207](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015115218207.png)
+
+取消勾选, 整个就无法选择了
+
+![image-20251015115247937](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015115247937.png)
+
+#### QTabWidget
+
+`QTabWidget`是一个带有标签页的控件, 我们可以将控件放在不同的标签页中, 从而实现对它们的整体切换
+
+我们先直接进设计界面看一看, 之后在项目里主要用代码
+
+我们看到, `QTabWidget`在默认情况下带有两个标签页, 在程序中, 可以通过点击的方式进行标签切换
+
+![image-20251015215237594](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015215237594.png)
+
+我们可以在每个标签页里面增加控件, 那我这里就随便放一个label了
+
+![image-20251015215514491](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015215514491.png)
+
+我们看属性对象, 其实就能看出来, 每个标签其实就是一个小`QWidget`, 在代码方式, 我们也能再看出来
+
+![image-20251015215627031](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015215627031.png)
+
+运行
+
+![image-20251015215727001](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015215727001.png)
+
+![image-20251015215738215](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015215738215.png)
+
+当然这里的文本只是随便写写, 在实际工作中, 文本应该有具体的内容, 如果光写顺序的话, 等会儿我们就会发现一个不太好看的事: 那就是比如有1 2 3这三个标签, 删掉第二个, 那第三个标签的文本还是显示"第三个标签页", 诚然, 我们当然有办法同步顺序, 但何必那样做呢? 我们可以让实际的文本内容没有那么强的顺序性, 从而避开这种不好看的效果
+
+如果我们想要增加删除标签页, 右键, 就可以看到这两个项
+
+![image-20251015220333015](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015220333015.png)
+
+![image-20251015220354197](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015220354197.png)
+
+这里我们就可以插入一个新的标签
+
+![image-20251015220448790](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015220448790.png)
+
+这里就可以改名字
+
+![image-20251015220516839](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015220516839.png)
+
+然后删除
+
+![image-20251015220633748](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015220633748.png)
+
+接下来我们看`QTabWidget`的核心属性
+
+- `tabPosition`
+  标签页所在的位置, `North`上方, `South`下方, `West`左侧, `East`右侧, 按着地图来的
+- `currentIndex`
+  当前选中标签页的下标, 同样是从零开始
+- `currentTabText`
+  当前选中标签页的文本
+- `currentTabName `
+  当前选中标签页的名字, 用来在代码里访问
+- `currentTabIcon`
+  当前标签页的图标
+- `currentTabToolTip`
+  鼠标悬停标签页的提示信息
+- `tabsCloseable `
+  布尔值, 打开后, 标签页会有一个小叉号, 点击小叉号, 会触发相应的信号
+- `movable`
+  标签页是否可以移动
+
+核心信号
+
+- `currentChanged(int) `
+  当标签页发生切换时触发, 参数为被选中标签的编号
+- `tabBarClicked(int)`
+  点击标签页标签条的时候触发, 参数为点击标签编号
+- `tabBarDoubleClicked(int)`
+  双击标签页标签条的时候触发, 参数为双击的标签编号
+- `tabCloseRequest(int) `
+  点击小叉号的时候触发, 参数为被关闭的标签编号
+
+下面写项目, 内容其实就是之前在Designer的那些
+
+![image-20251015222418620](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015222418620.png)
+
+注意这里`Tab 1`的名字叫做`tab`, `Tab 2`叫做`tab_2`
+
+![image-20251015222825531](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015222825531.png)
+
+![image-20251015222851371](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015222851371.png)
+
+然后, 我们都用代码
+
+首先是界面的初始化
+
+![image-20251015223456162](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015223456162.png)
+
+然后我们写那两个按钮
+
+![image-20251015225555904](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015225555904.png)
+
+运行
+
+![image-20251015225431667](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015225431667.png)
+
+![image-20251015225618056](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015225618056.png)
+
+当然前面那两个最开始的label改成相同风格更好
+
+![image-20251015230229043](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015230229043.png)
+
+运行
+
+![image-20251015230346518](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015230346518.png)
+
+![image-20251015230358164](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251015230358164.png)
+
+或者你也可以用`tabsCloseable`它们作为标签删除的方式, 这里就不说了
+
+
+
 # 完
