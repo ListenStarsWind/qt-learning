@@ -4681,6 +4681,42 @@ Qt还提供了`QGrdiLayout`这种网格布局, 可以达到`M * N`的这种网�
 
 ![image-20251017000143296](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017000143296.png)
 
+#### QFormLayout
 
+`QFormLayout`是表单布局, 表单, 之前我们在Linux网络编程那里谈到过, 因为当时要查看服务器受到的报文, 所以顺带讲了一下表单. 表单常见于前端, 用于收集用户的某些信息. 其形式其实就是一组pairs, 或者说, 是多行, 两列的形式.
+
+而在`QFormLayout`这里, 它的第一列和第二列都可以是任意控件, 但往往第一列是`label`, 用于提示信息, 第二列是`lineEdit` , 用于提示内容, 并且, 第一列可以为空.  并通过`addRow`将一行添加进去.
+
+下面我们就直接开写
+
+![image-20251017110013826](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017110013826.png)
+
+![image-20251017110031886](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017110031886.png)
+
+#### QSpacerItem
+
+`QSpacerItem`并不是布局管理器, 但往往搭配布局管理器使用. 之前我们说拉伸系数描述了控件之间的大小比例, 但是他并没有改变控件之间的间隔, 它们之间的间隔仍旧是均等的. 此时我们就可以使用`QSpacerItem`插入一段空白, 从而让间隔看上去不相同
+
+仍旧是直接写代码
+
+![image-20251017111148731](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017111148731.png)
+
+![image-20251017111422266](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017111422266.png)
+
+![image-20251017111353407](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017111353407.png)
+
+![image-20251017111447831](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017111447831.png)
+
+空白的顺序和add的顺序是相关联的, 也就是说, 空白第一个添加, 那么就会出现在左边, 第三个添加就会出现在右边., 在此就不做过多演示了.
+
+另外, 在设计界面也能看到他们, 不过designer给他们做了更细的划分.
+
+![image-20251017111756681](https://md-wind.oss-cn-nanjing.aliyuncs.com/image-20251017111756681.png)
+
+---
+
+在这之后, 我们对于常用控件的学习就告一段落了, 我们说了很多控件, 尽管并没有说完, 但凭借着对上述控件的认识, 理解其它控件相信也并非什么难事. 需要强调的是, 对于上述控件来说, 我们都可以对其进行扩展, 比如, 重新继承, 然后增加些新的内容, 又或者, 自定义一个`widget`, 在其中加入这些或者重新继承的新控件, 从而创建一个全新的控件, 并加入到`this widget`.
+
+ 
 
 # 完
