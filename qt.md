@@ -4717,6 +4717,219 @@ Qt还提供了`QGrdiLayout`这种网格布局, 可以达到`M * N`的这种网�
 
 在这之后, 我们对于常用控件的学习就告一段落了, 我们说了很多控件, 尽管并没有说完, 但凭借着对上述控件的认识, 理解其它控件相信也并非什么难事. 需要强调的是, 对于上述控件来说, 我们都可以对其进行扩展, 比如, 重新继承, 然后增加些新的内容, 又或者, 自定义一个`widget`, 在其中加入这些或者重新继承的新控件, 从而创建一个全新的控件, 并加入到`this widget`.
 
- 
+ ## Qt窗口
+
+前面我们学习的控件, 都是基于`QWidget`. 但对于一个完整的Qt窗口来说, 仅有一个`QWidget`还不够. 他还包含一些其他内容, 共同构成了`QMainWindow`
+
+![image-20251017211750359](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017211750359.png)
+
+首先是Window Title, 也就是视窗标题, 这个我们以前以前也讲过, 上面有什么程序图标, 最小化, 最大化, 关闭. 比如这个就是我的markdown编辑器Typora的Window Title
+
+![image-20251017212214235](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017212214235.png)
+
+Menu Bar就是菜单栏, 就是上图中的"文件, 编辑, 段落, 格式"什么的, 鼠标点击或者我们前面说过ALT 组合键, 能让他们显示出具体的菜单选项
+
+![image-20251017212606302](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017212606302.png)
+
+Tool Bar Area即工具栏区, 工具栏能将常用的特定工具直接展现出来, 不像菜单栏要进一步选择, 直接点击即用. 上图中没有工具栏, 我换一个程序
+
+![image-20251017213244460](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017213244460.png)
+
+不过他们的位置并不是完全和图片上一一对应的, 图上的一圈意思就是说, 它可以放上面, 下面, 左边, 右边
+
+接着是Dock Widget Area, dock有个动词用法叫做对接
+
+![image-20251017213741277](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017213741277.png)
+
+我们一般叫做"铆接控件区"或者子窗口
+
+![image-20251017214115236](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017214115236.png)
+
+比如, 这里左边的文件资源管理器, 右边的聊天, 下边的shell, 它们都是子窗口, 并且子窗口的具体位置也可以通过拖拽来调整位置.
+
+Status Bar即状态栏, 比如上图中最下面的那一行
+
+![image-20251017214505120](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017214505120.png)
+
+比如什么git分支, clangd状态, vim 的状态是 normal, 也就是一般状态, 10小时前提交, 多少行多少列, 编码模式, 语言什么的
+
+中间的Central Widget, 中央控件, 就是窗口的核心部分
+
+#### 菜单栏
+
+对于菜单栏我们要强调的点是一个主窗口最多只能有一个菜单栏.
+
+首先, 我们再认识一下菜单栏
+
+![image-20251017222853429](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017222853429.png)
+
+这里需要注意的事, 菜单点击后的那一个个子项, 并不叫做`QMenuItem`, 而是叫`QAction`, 工具栏上的那些选项也是`QAction`, 它们本质上是菜单栏子项的快捷方式. 菜单子项和工具是一个统一的概念.
+
+下面, 我们创建一个以`QMainWindow`为模版的项目, 以designer的方式简要操作一下工具栏.
+
+这里我们就不用`VSCode`了, 这样更方便演示(~~其实是我`QMainWindow`模版项目没写~~)
+
+![image-20251017223710120](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017223710120.png)
+
+这会儿可就不要再改了
+
+![image-20251017223740738](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017223740738.png)
+
+新项目和之前widgets的主体流程相似, 都是先在main函数中创建一个`mainWindow`, 然后再show
+
+![image-20251017231213626](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017231213626.png)
+
+当然细节肯定不是一样的毕竟我们的基类都变了
+
+![image-20251017231336162](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017231336162.png)
+
+不过在form file里, 差别就很明显了
+
+首先第一样看上去, 多了一个东西, "在这里输入"
+
+![image-20251017231523396](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017231523396.png)
+
+在对象查看器里, 我们还能它其实已经自带`centralwidget menubar statusbar`, 只不过没有内容, 所以看不到
+
+![image-20251017231918716](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017231918716.png)
+
+此时, 我们就可以在这里输入, 比如, 这里我们输入一个"文件", 然后回车
+
+![image-20251017233143423](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017233143423.png)
+
+如果在上边继续输入, 那就是创建了一个新的menu, 如果在下面输入, 创建的就是action, 我这里特意用英文, 是为了强调你要分得清, 菜单栏`menuBar`     菜单`menu`   菜单子项`action` 这三个东西. "添加分隔符"等会儿再讲
+
+接着, 我们在添加几个menu
+
+![image-20251017234120495](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234120495.png)
+
+运行
+
+![image-20251017234155663](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234155663.png)
+
+就能看到效果, 同时, 对象树这边也有所体现
+
+![image-20251017234244151](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234244151.png)
+
+只不过因为这里没有菜单项, 所以点了也没反应, 下面我们新建一个action
+
+![image-20251017234522211](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234522211.png)
+
+不过这里好像有问题, 输不进中文, 我是先在别的文本编辑器里打出"新建", 然后再粘贴上去的
+
+![image-20251017234906676](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234906676.png)
+
+![image-20251017235058978](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017235058978.png)
+
+运行
+
+![image-20251017234937825](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/undefinedimage-20251017234937825.png)
+
+但我们这里没写槽函数, 所以点了也还是没反应
+
+---
+
+接下来, 我们就使用code的方式操作menu Bar
+
+和widget相同, 与初始化相关的代码, 都将被放到`MainWindow`的构造函数中
+
+![image-20251018105816715](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018105816715.png)
+
+![image-20251018101415053](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018101415053.png)
+
+由于没加action, 所以点了还是没有反应, 下面, 我们就加一下
+
+![image-20251018113542949](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018113542949.png)
+
+运行
+
+![image-20251018113631606](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018113631606.png)
+
+action通过信号槽机制, 在点击时触发业务逻辑, 它的信号函数是`triggered`, 被点击时发出信号 
+
+![image-20251018135113957](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018135113957.png)
+
+运行
+
+![image-20251018135237781](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018135237781.png)
+
+点击"新建"
+
+![image-20251018135312694](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018135312694.png)
+
+下面, 我们对action "退出"关联槽函数close
+
+![image-20251018135651181](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018135651181.png)
+
+![image-20251018135736766](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018135736766.png)
+
+点击即能退出窗口
+
+----
+
+下面, 是有关于菜单栏快捷键绑定的操作
+
+还是看我们的Typora
+
+![image-20251018224855407](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018224855407.png)
+
+这里菜单的旁边都有一个大写字母, 用来提示该菜单绑定的快捷键, 比如我们使用 ALT F 组快捷键就可以打开文件菜单, 查看其中的具体选项
+
+![image-20251018225050424](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251018225050424.png)
+
+刚刚我们自己的`MainWindow`可没有这个功能, 下面我们就添加一下
+
+首先, 我们先搭一个没有快捷键的架子
+
+![image-20251019103928335](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019103928335.png)
+
+其实对于快捷键的添加也很简单, 还记得之前我们在`QLabel`那里说的伙伴吗? 直接在文本上添加点特定字符就行了
+
+![image-20251019104453013](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019104453013.png)
+
+这里最关键的就是`&`, 它会转移后面的字符, 而在具体的显示上, 就是去掉`&`的模样
+
+![image-20251019104546546](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019104546546.png)
+
+另外, 用`QShortcut`也可以绑快捷键, 早在button那里我们就已经说过了. 但他比较麻烦.
+
+action的绑定也是相同的道理.
+
+![image-20251019105629659](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019105629659.png)
+
+这里用什么键我就胡写了, 上面的FEVA相信你也能看出来是首字母
+
+为了方便观察, 我们再为这四个项 connect 个 slot
+
+![image-20251019111251465](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019111251465.png)
+
+运行
+
+![image-20251019111405803](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019111405803.png)
+
+![image-20251019111704072](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019111704072.png)
+
+![image-20251019111737934](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019111737934.png)
+
+----
+
+接下来我们看如何添加子菜单
+
+有时候, 菜单可能会包含一些子菜单, 子菜单甚至还会再包含一层子菜单, 经过数次嵌套之后, 最终才来到action
+
+![image-20251019113219978](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019113219978.png)
+
+如果我们想要实现这样的嵌套效果. 就需要对 `menu` 再 `addMenu`
+
+![image-20251019115015218](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019115015218.png)
+
+运行
+
+![image-20251019115041046](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019115041046.png)
+
+----
+
+
 
 # 完
+
