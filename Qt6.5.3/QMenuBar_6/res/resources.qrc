@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <!-- 资源文件说明见 res/resource_guide.txt -->
+    <qresource prefix="/">
+        <file>resource_guide.txt</file>
+        <file>open.png</file>
+        <file>save.png</file>
+    </qresource>
+</RCC>

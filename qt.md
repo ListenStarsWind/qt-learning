@@ -4929,7 +4929,213 @@ action的绑定也是相同的道理.
 
 ----
 
+接下来我们说说如何添加分割线
 
+![image-20251019113219978](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251019113219978.png)
+
+还是这张图, 我们看到由于菜单的内容较多, 所以使用分割线对它们进行了分组, 从而在视觉上更加醒目和清晰.
+
+而实际上, 分隔线的添加十分简单, 我们只需要在合适的位置调用接口`addSeparator`
+
+我们先写一个非常简单的代码
+
+![image-20251020090708491](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020090708491.png)
+
+![image-20251020091149069](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020091149069.png)
+
+下划线的添加就是往最后那两个`addAction`中间再添加一个`addSeparator`
+
+![image-20251020091033718](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020091033718.png)
+
+![image-20251020091105845](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020091105845.png)
+
+这里我们就可以看到中间有一根浅浅的线, 把菜单项分组了.
+
+---
+
+另外, 你或许注意到, 菜单项的前面似乎有个空白, 这个空白就牵扯到下面我们要说的话题, 如何添加图标.
+
+![image-20251020095513477](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020095513477.png)
+
+![image-20251020095535748](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020095535748.png)
+
+利用我们之前介绍的 阿里巴巴矢量图库表, 我已准备了两张照片.
+
+![image-20251020100004061](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020100004061.png)
+
+你可以用Creator的界面, 我这里嫌麻烦. 就直接手写`.qrc`了
+
+![image-20251020100335262](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020100335262.png)
+
+![image-20251020100616762](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020100616762.png)
+
+运行
+
+![image-20251020100654446](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020100654446.png)
+
+不光是 action , menu 也是可以添加图标的, 不过有些问题: 因为它不像 action 那样留白, 所以图标会覆盖文字, 不过实际上我们也没见过谁家菜单还用图标的
+
+![image-20251020101124623](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020101124623.png)
+
+![image-20251020101143428](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020101143428.png)
+
+---
+
+关于菜单栏还有一个小问题:
+
+在上面的项目里, 我们主要使用的都是code方式, 而非designer方式, 然而, code这种获取`menuBar`的方式实际上有点问题, 这个问题说大也不算特别大, 说小也不算特别小.
+
+![image-20251020104138121](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020104138121.png)
+
+简单地说, 在勾选自动生成 form file 文件时, 这种代码会造成内存泄露
+
+![image-20251020104610323](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020104610323.png)
+
+原因在于, 在 form file 中, 其实就已经有 menu Bar 和 status Bar 了
+
+![image-20251020104929929](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020104929929.png)
+
+此时我们在 code 中再 new Menu Bar , 因为 Menu Bar 在 Main Window 中只有一个, 所以 new 出来的会把 from file 里的顶替掉, 这样 from file 里的 Menu Bar就丢失了, 从而造成内存泄露.
+
+不过 Qt 开发的可是客户端, 不是服务端, 客户端不会7*24小时不间断运行, 再加上就这两个小组件, 所以不是什么大问题. (除非你这个客户端在嵌入式环境)
+
+但这毕竟是一个问题, 相应的解决方案有几种
+
+第一种, 如果你确定不会通过 designer 操作控件, 你可以把这个勾选关掉
+
+![image-20251020104610323](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020104610323.png)
+
+第二种方法是改 code 
+
+![image-20251020110311719](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020110311719.png)
+
+这就相当于复用了 form file 里的 Menu Bar.
+
+不过还有人说可以直接把 from file 里那两个控件的标签删了, 不过我个人不推荐这样做, 因为我专门看过, designer 里左边控件栏没他们两个, 换句话来说, 删了你不好加回去. (我是说用 Creator 不好删和加)
+
+#### 工具栏
+
+正如前文所说, 工具栏是菜单项的一种快捷方式, 下面我们就看看它的基本用法. 
+
+在 Qt 中, 工具栏使用 `QToolBar` 来表示, 并且, 一个窗口可以有多个工具栏. 也可以没有. designer 中似乎没有 `QToolBar`, 所以我们直接使用代码.
+
+ ![image-20251020223351745](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020223351745.png)
+
+注意这里用的是 add , add 的意思就是可以加多个, set 的意思是只能加一个, 或者说覆写. 就 Qt 来说, 它就是这样的意思
+
+运行
+
+![image-20251020223732610](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020223732610.png)
+
+我们就能发现有浅浅的一个栏, 注意这个栏前面还有一个点, 这个点等会儿我们会说是表示什么的.
+
+接下来我们就往其中加上 action 
+
+![image-20251020224432483](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020224432483.png)
+
+![image-20251020224456044](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020224456044.png)
+
+不过呢, 一般来说, 工具栏用的都是图标而非文本, 所以接下来我们把图标加上去
+
+![image-20251020225002121](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020225002121.png)
+
+![image-20251020225017630](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020225017630.png)
+
+此处的效果和 Menu Bar 差不多, 文本被图标覆盖了, 但其实上, 文本并没有完全消失, 而是转化成了 tool tip 的内容, 也就是说, 你把鼠标悬停在上面, 原来的文本就会弹出以说明该工具的功能.
+
+![image-20251020225542579](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020225542579.png)
+
+当然我们还可以使用专门的接口修改 tool tip 的文本
+
+![image-20251020225754587](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020225754587.png)
+
+![image-20251020225814111](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020225814111.png)
+
+另外, 正如我们一再强调的, 工具栏是菜单栏的快捷方式, 所以实际的一般流程是先写菜单栏, 写完之后, 把用的多的 action 单独拎出来再加到 tool bar
+
+![image-20251020230246994](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020230246994.png)
+
+这里为了方便观察, 我们可以先把工具栏移到其它地方
+
+把鼠标放到那个小点上
+
+![image-20251020230505643](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020230505643.png)
+
+移动并吸附到其它地方, 比如右侧
+
+![image-20251020230549524](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020230549524.png)
+
+这里, 尽管 action 可能同时有两个父对象, 一个是 Menu Bar , 另一个是 Tool Bar, 那会不会引发重复析构呢? 这你不用担心, Qt 已经处理好了, 不会重复析构的.
+
+---
+
+接下来我们讨论 Tool Bar 的移动, 在此过程中顺便说一下多个 Tool Bar 的创建效果
+
+我们首先创建多个 Tool Bar
+
+![image-20251020232141252](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020232141252.png)
+
+![image-20251020232158307](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020232158307.png)
+
+我们看到, 每个 tool bar, 都有一组点, 表示其可被拖动
+
+![image-20251020232421626](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020232421626.png)
+
+这种没有吸附到边缘的状态, 叫做浮动
+
+靠近边框的时候, 他就会被吸附过去
+
+![image-20251020232720579](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020232720579.png)
+
+![image-20251020232745470](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020232745470.png)
+
+默认情况下, 上下左右四个方向都会吸附
+
+接下来我们主要做的就是, 通过代码控制 tool bar 的移动行为
+
+首先我们可以通过`addToolBar(QToolBar)`的重载函数`addToolBar(Qt::ToolBarArea, QToolBar)`控制 Tool Bar 的初始位置
+
+`Qt::ToolBarArea`是一个枚举值
+
+![image-20251020233649823](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020233649823.png)
+
+| 常量名称            | 值（十六进制） | 区域描述                                       | 用途说明                                     |
+| ------------------- | -------------- | ---------------------------------------------- | -------------------------------------------- |
+| `AllToolBarAreas`   | `0xf` (15)     | 所有工具栏区域的组合（顶部、底部、左侧、右侧） | 表示工具栏允许停靠的所有区域                 |
+| `BottomToolBarArea` | `0x8` (8)      | 窗口底部的工具栏区域                           | 表示工具栏停靠在窗口底部                     |
+| `LeftToolBarArea`   | `0x1` (1)      | 窗口左侧的工具栏区域                           | 表示工具栏停靠在窗口左侧                     |
+| `NoToolBarArea`     | `0x0` (0)      | 无工具栏区域（未分配或浮动状态）               | 表示工具栏未停靠或处于浮动状态，用于状态检查 |
+| `RightToolBarArea`  | `0x2` (2)      | 窗口右侧的工具栏区域                           | 表示工具栏停靠在窗口右侧                     |
+| `ToolBarArea_Mask`  | `0xf` (15)     | 工具栏区域的掩码，表示所有有效区域的位边界     | 用于位运算，验证或过滤工具栏区域的有效性     |
+| `TopToolBarArea`    | `0x4` (4)      | 窗口顶部的工具栏区域                           | 指定工具栏停靠在窗口顶部                     |
+
+我们只需要看 `AllToolBarAreas   BottomToolBarArea   LeftToolBarArea   RightToolBarArea   TopToolBarArea` 这个五个就行了, `NoToolBarArea`不会被用上, `ToolBarArea_Mask`是用来进行更复杂位运算时用来过滤掉超出数值的数据的. 另外在数值上方我们也能看出来, 它所采用的是比特位传参方式.
+
+![image-20251020235013324](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235013324.png)
+
+![image-20251020235026704](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235026704.png)
+
+我们也可以通过`QToolBar`中的方法`setAllowedAreas`来设置它允许停靠在那些位置
+
+![image-20251020235409345](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235409345.png)
+
+这样就是只允许停靠在左边和右边
+
+![image-20251020235446598](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235446598.png)
+
+也可以设置为不可浮动
+
+![image-20251020235615244](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235615244.png)
+
+这样的话, 只要松开鼠标它就会回到原位
+
+又或者可以设置为不可移动
+
+![image-20251020235816351](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235816351.png)
+
+![image-20251020235842312](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235842312.png)
+
+此时就不会有那组小点了
 
 # 完
 
