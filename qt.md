@@ -5167,6 +5167,34 @@ action的绑定也是相同的道理.
 
 ![image-20251021102309549](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021102309549.png)
 
+#### 子窗口
+
+接下来我们看`QDockWidget`, 常被叫做子窗口或者浮动窗口, 它的基本用法也是较为简单的, 下面, 我们就直接使用 code 
+
+首先是创建并添加, 需要注意的是, 这里必须指定子窗口的出现区域
+
+![image-20251021111918517](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021111918517.png)
+
+![image-20251021112009701](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021112009701.png)
+
+这里我们也可以像 tool bar 那样将子窗口拖到不同的位置, 甚至可以把它完全拖出来
+
+![image-20251021112249797](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021112249797.png)
+
+也可以添加窗口标题
+
+![image-20251021112520035](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021112520035.png)
+
+接下来我们就需要往 dock widget 里面添加内容, 需要注意的是, 对于 dock widget 来说, 别的 widget 是 set 的, 也就是说他只能加一个 widget, 因此我们需要先创建一个 `QWidget`, 往里面添加内容, 然后再把这个`QWidget`set 进 dock widget
+
+![image-20251021113739645](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021113739645.png)
+
+![image-20251021113753441](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021113753441.png)
+
+另外, 我们也可以设置 dock widget 的移动属性, 同样是类似于 tool bar
+
+![image-20251021114334027](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021114334027.png)
+
 
 
 # 完
