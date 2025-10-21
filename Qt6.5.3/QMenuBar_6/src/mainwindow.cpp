@@ -5,7 +5,8 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    auto menuBar = ui->menubar;
+    auto menuBar = this->menuBar();
+    this->setMenuBar(menuBar);
 
     auto menu = new QMenu("文件");
     menu->setIcon(QIcon(":/open.png"));

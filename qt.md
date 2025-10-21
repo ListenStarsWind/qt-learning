@@ -5007,9 +5007,9 @@ action的绑定也是相同的道理.
 
 第二种方法是改 code 
 
-![image-20251020110311719](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020110311719.png)
+![image-20251021095911767](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021095911767.png)
 
-这就相当于复用了 form file 里的 Menu Bar.
+`QMainWindow`中的`menuBar`方法有两条逻辑分支: 如果 this 已经存在 `MenuBar`, 那么就返回这个现有的; 如果不存在就创建一个默认的, 返回指针; 这里我们再调用`setMenuBar`主要就是为了防范第二种逻辑, 并且 这样写对于第一种逻辑也是没有问题的, 相当于自己覆写自己.
 
 不过还有人说可以直接把 from file 里那两个控件的标签删了, 不过我个人不推荐这样做, 因为我专门看过, designer 里左边控件栏没他们两个, 换句话来说, 删了你不好加回去. (我是说用 Creator 不好删和加)
 
@@ -5136,6 +5136,38 @@ action的绑定也是相同的道理.
 ![image-20251020235842312](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251020235842312.png)
 
 此时就不会有那组小点了
+
+#### 状态栏
+
+状态栏一般位于窗口底部, 用于简短地输出程序的状态信息. 
+
+需要注意的是, 和菜单栏一样, 状态栏 form file 一般也会自带一个, 所以我们对于状态栏的获取, 应该仿照咱们再菜单栏末尾说的那种方法
+
+![image-20251021100724469](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021100724469.png)
+
+![image-20251021100752716](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021100752716.png)
+
+`  showMessage`方法用于临时的显示消息, 第二个参数表示消息的显示时间, 单位是毫秒, 此处的意思就是显示3秒就消失, 如果参数为零, 表示一直显示(也存在只有一个 text 参数的重载版本, 这个版本就是一直显示)
+
+状态栏中还可以添加其它控件
+
+![image-20251021101522343](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021101522343.png)
+
+`addWidget`的意思就是从左往右填, 而`addPermanentWidget`的意思就是从右往左填
+
+![image-20251021101726527](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021101726527.png)
+
+当然也可以继续往里添加别的控件, 比如进度条
+
+![image-20251021102118709](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021102118709.png)
+
+![image-20251021102129724](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021102129724.png)
+
+另外, 在`addWidget`系列接口中也可以设置拉伸系数
+
+![image-20251021102309549](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021102309549.png)
+
+
 
 # 完
 
