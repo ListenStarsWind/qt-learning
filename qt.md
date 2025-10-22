@@ -5195,7 +5195,169 @@ action的绑定也是相同的道理.
 
 ![image-20251021114334027](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021114334027.png)
 
+#### 对话框
 
+下面我们来说对话框 dialog , 它是一种用于与用户进行短期交互的窗口, 常用来进行重要信息的提示与确认. 比如, 在 Windows 的记事本中, 改变了一个文件的文本, 关闭时, 它就会弹出窗口"是否保存修改".
+
+![image-20251021194258475](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021194258475.png)
+
+不过对话框也不能太多, 否则使用体验就会变差, 因为经常被打断.
+
+在 Qt 中, `QDialog`表示对话框, 它也是 Creator 创建新项目时可选的基类之一
+
+![image-20251021200515240](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021200515240.png)
+
+第一次我们还是使用 Creator 来认识他. 不过更多的时候, `QDialog`的使用方式都是作为一个新的类放到`QMainWindow`项目中的. 并且 Qt 中也已经内置了一些对话框, 比如 文件对话框 `QFiledialog`, 颜色对话框 `QColorDialog  `, 字体对话框 `QFontDialog  `, 输入对话框 `QInputDialog  `, 消息框 `QMessageBox  `.
+
+![image-20251021201240834](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021201240834.png)
+
+这个新建项目在代码和 from file 上都和 widget 很像, 运行起来其实也很像
+
+![image-20251021201411933](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021201411933.png)
+
+稍有不同的就是他的窗口框架, 没有最小化最大化, 就剩一个叉号.
+
+---
+
+接下来我们新建一个 Main Window 项目, 实现功能 : 点击按钮, 弹出对话框
+
+进入 designer , 拖入一个按钮
+
+![image-20251021203847936](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021203847936.png)
+
+code 中添加槽函数
+
+![image-20251021204912826](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021204912826.png)
+
+![image-20251021204535075](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021204535075.png)
+
+![image-20251021204553406](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021204553406.png)
+
+不过这种写法是有问题的, 我们会发现, 每次按下按钮就会又 new 一个 `QDialog`, 尽管 Qt 的对象树机制确保这些对话框在主窗口上都会被销毁(当然从系统角度说, 进程地址空间都没了, 那也是销毁了, 也就是说此种场景下对象树机制起的作用不大), 但是, 之前 new 的那些 `QDialog`, 在对话框被关闭后就相当于丢失了, 因此实际上它也是内存泄露.
+
+可能有人说, 怕内存泄露换成栈上或者末尾 delete 一下就可以避免了. 确实, 这能解决问题. 但它引发了新的问题, 因为每行代码的执行速度是很快的, 所以在感官上, 看到的效果就是 `QDialog`, 删一下就没了. 所以正确思路的角度是从对话框的叉号入手, 让它的执行逻辑包含对自我的析构.
+
+那照这样说, 应该把 `QDialog`从 `QWidget`那里继承的 close 方法重写一遍吗? 思路是这样的, 但实际上, close 是正常函数而非虚函数, 所以你重写不了, 如果真的想重写 close 逻辑, 你可以重写 `closeEvent(QCloseEvent *event)`这个虚函数, 因为 close 作为 信号函数会触发前者这个槽函数. 不过对于 `QDialog`, 由于它自身的这种"短平快"的特性, 经常会出现上述的类似场景, 所以它有一个属性可供选择, `Qt::WA_DeleteOnClose`
+
+![image-20251021212513730](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021212513730.png)
+
+---
+
+下面我们将通过 code 和 designer 两种方式设置对话框中的具体内容
+
+首先我们还是新建一个 Main Window 项目
+
+在 designer 中创建按钮, 添加槽函数
+
+![image-20251021222834334](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021222834334.png)
+
+![image-20251021223153101](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021223153101.png)
+
+然后新建文件和项目
+
+![image-20251021215451745](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021215451745.png)
+
+选择 C++ Class
+
+![image-20251021215553573](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021215553573.png)
+
+![image-20251021215722411](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021215722411.png)
+
+在我这个环境中(上面 Creator 只是演示操作流程), 没有给他写 `Q_OBJECT`, 因为暂且还用不到信号槽机制
+
+![image-20251021222449759](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021222449759.png)
+
+然后我们就可以在`dialog.cpp`中为其增加显示内容
+
+![image-20251021224548622](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021224548622.png)
+
+回到参函数, 控制一下细节
+
+![image-20251021224620871](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021224620871.png)
+
+![image-20251021224741502](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021224741502.png)
+
+下面我们再为对话框上的按钮添加对应逻辑的槽函数
+
+因为之前没加`Q_OBJECT`, 现在要用到槽函数, 所以再给他补上
+
+![image-20251021224942704](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021224942704.png)
+
+![image-20251021225138464](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021225138464.png)
+
+这样关闭按钮就可以用了
+
+![image-20251021225220480](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021225220480.png)
+
+---
+
+接下来我们通过 designer 实现类似的效果
+
+此时我们就需要添加一个新的 from file 
+
+选择 Qt 设计师界面类
+
+![image-20251021225945591](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021225945591.png)
+
+此处他为我们提供了一些模版, 此处我们选择 Dialog without Buttons, 没有按钮的对话框
+
+![image-20251021230142685](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021230142685.png)
+
+其它都默认
+
+![image-20251021230318516](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021230318516.png)
+
+这里其实我们也可以直接默认
+
+在 code 这边, 我也把文件复制过来并微调了配置文件的一些细节
+
+![image-20251021231423428](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021231423428.png)
+
+此时我们就可以通过 designer 来对 `dialog.ui` 进行调整
+
+![image-20251021231820709](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021231820709.png)
+
+`mainwindow.ui`也加个按钮
+
+![image-20251021232054077](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232054077.png)
+
+添加槽函数
+
+![image-20251021232538662](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232538662.png)
+
+为对话框里面的按钮添加槽函数
+
+![image-20251021232714581](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232714581.png)
+
+运行
+
+![image-20251021232745479](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232745479.png)
+
+![image-20251021232814664](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232814664.png)
+
+![image-20251021232829677](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021232829677.png)
+
+---
+
+下面我们说对话框的一个重要属性, model ,  模态与非模态. 是一个布尔值
+
+所谓模态, 就是说, 弹出对话框的时候, 用户将无法使用父窗口, 直到完成对话框内部的操作为止, 才能继续使用父窗口, 非模态则没有模态这么有"强制性". (其实就是模态对话框阻塞运行, 非模态不阻塞.)
+
+模态从软件设计角度来说, 用于强调对话框决策的重要性, 要求用户必须做出选择, 否则程序就无法确认进一步的运行逻辑.  
+
+![image-20251021194258475](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251021194258475.png)
+
+之前的这个记事本对话框就是模态的, 此时你将无法点击父窗口的其它部位, 或者点了以后报警并闪烁.
+
+在代码上, 模态和飞模态的使用也很简单, `show`方法是非模态的, `exec`方法是模态的. 所以像我们之前写的那些对话框都是非模态的, 想换成模态, 只要把`show`改为`exec`即可
+
+![image-20251022101808839](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022101808839.png)
+
+当然, 模态对话框用多了也不太好, 很影响用户体验, 典型的一个案例就是 2010 的 3Q大战. 3是360, Q是QQ. 事件的爆发标志就是腾讯QQ增加了一个功能, QQ会偷偷扫盘, 在发现电脑上有360软件时, 就会弹出一个模态对话框
+
+![undefined](https://upload.wikimedia.org/wikipedia/zh/7/73/3Q%E5%A4%A7%E6%88%98.jpg)
+
+至于具体内容, 毕竟这是一个文档, 白纸黑字写着, 咱也不好说, 自己去查吧. 总之最后, 工信部和公安部下场, 让他们两家公司和解了.
 
 # 完
 
