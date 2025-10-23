@@ -5359,5 +5359,180 @@ code 中添加槽函数
 
 至于具体内容, 毕竟这是一个文档, 白纸黑字写着, 咱也不好说, 自己去查吧. 总之最后, 工信部和公安部下场, 让他们两家公司和解了.
 
+----
+
+下面我们说一说 Qt 内置的继承自 `QDialog`的标准对话框.
+
+首先是消息对话框 `QMessageBox`
+
+消息对话框是应用程序中最常见的界面元素, 消息对话框主要用于为用户提供重要信息, 强制用户进行选择操作. (因此往往是模态的)
+
+下面我们直接上 code
+
+![image-20251022112737373](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022112737373.png)
+
+另外, 我们也可以看到, Qt 为 Message Box 内置了一些图标和按钮
+
+![image-20251022115724498](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022115724498.png)
+
+![image-20251022115740555](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022115740555.png)
+
+运行
+
+![image-20251022120039777](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022120039777.png)
+
+如果我们想知道用户最后选择了哪个按钮, 就可以通过 exec 的返回值来确认
+
+![image-20251022195625322](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022195625322.png)
+
+这个是 保存, 丢弃, 取消, 叉号按下的效果
+
+![image-20251022195743757](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022195743757.png)
+
+另外, 其实我们也可以添加自定义的按钮, 然后用信号槽的方式执行按钮被点击之后的逻辑
+
+![image-20251022202610169](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022202610169.png)
+
+这里涉及到了 `QMessageBox::ButtonRole`枚举值, 用于描述按钮扮演的角色, 这些角色一般暗含着按钮被按下时对话框的后续行为以及会额外触发的信号(除了clicked 还会触发一些其它信号, 这些其它信号的具体类型就和此处的角色相关, 用来进行更具有针对性, 语义更丰富的信号触发, 具体不讲了)
+
+| ButtonRole      | 描述          | 用途                                              |
+| --------------- | ------------- | ------------------------------------------------- |
+| InvalidRole     | 无效角色      | 表示按钮未分配角色或错误情况，通常不手动使用      |
+| AcceptRole      | 接受/确认操作 | 用于“确定”“保存”等按钮，触发接受操作，关闭对话框  |
+| RejectRole      | 拒绝/取消操作 | 用于“取消”“关闭”等按钮，触发拒绝操作，关闭对话框  |
+| DestructiveRole | 破坏性操作    | 用于“删除”“丢弃”等可能导致数据丢失的按钮          |
+| ActionRole      | 中性动作      | 用于触发特定非确认/取消的操作，如“打开”“查看详情” |
+| HelpRole        | 请求帮助      | 用于“帮助”“关于”等按钮，显示帮助文档或额外信息    |
+| YesRole         | 肯定回答      | 用于“是/否”对话框的“是”按钮，触发接受操作         |
+| NoRole          | 否定回答      | 用于“是/否”对话框的“否”按钮，触发拒绝操作         |
+| ApplyRole       | 应用设置      | 用于“应用”按钮，应用更改但不关闭对话框            |
+| ResetRole       | 重置操作      | 用于“重置”“恢复默认”按钮，将设置恢复到初始状态    |
+
+----
+
+除了上面的这种自己构造 Message Box 的对象, 其实还有另一种方法可以使用消息对话框, 在 `QMessageBox`中, 存在着依据消息种类(图标种类)而分类的系列静态函数, 我们可以直接把一些参数一股脑交给他们, 然后他们内部依据我们的参数自己构造对象, 并返回 exec(也是模态) 的 result
+
+![image-20251022211414359](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022211414359.png)
+
+同样能达到相同的效果
+
+---
+
+接下来是 `QColorDialog`, 颜色对话框, 它能以可视化的方式让用户选择一个颜色. 就像 Windows 的画图调色盘
+
+![image-20251022213450618](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022213450618.png)
+
+不过没怎么现代化, 这是 Windows11 的画图.
+
+想必我不说你也知道, 可以通过手动构造, 调用成员函数`selectedColor()`的方式获取用户选择的颜色, 但更多情况下我们还是直接用它的静态函数 `getColor`, 而不再去自己创建一个实例.
+
+![image-20251022222000529](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022222000529.png)
+
+![image-20251022221528054](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022221528054.png)
+
+直接打印的话, 是不透明度加上百分比的RGB, 也就是不透明度是1, red 0, green 255, blue 255.
+
+然后我们就可以用 QSS 直接进行背景色的设置
+
+![image-20251022222052513](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022222052513.png)
+
+![image-20251022222130036](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022222130036.png)
+
+----
+
+接下来是 `QFileDialog`, 文件对话框, 这是一种很常见的对话框, 主要的作用就是获取文件的全名, 也就是包括路径的那种, 然后通过这个全名, 通过某些方式进行处理.
+
+其中也有直接使用的静态函数, 比如, `getOpenFileName`获取打开文件的全名, `getSaveFileName`获取保存文件的全名, 并且它们也有对应的复数版本, 用于对多个文件的操作.
+
+![image-20251022225748897](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022225748897.png)
+
+运行
+
+![image-20251022225838335](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022225838335.png)
+
+当然, 它的默认路径就是进程的工作路径
+
+![image-20251022225932646](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022225932646.png)
+
+另外, 它其实也可以选择特定后缀的文件, 是在静态函数里面设置的, 不过有缺省值, 所以我们没设
+
+![image-20251022230321414](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022230321414.png)
+
+![image-20251022230348179](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022230348179.png)
+
+不用管报警, 那估计是 Qt 自己图片资源不太标准, 导致新版本的`libpng`报了这个警告
+
+需要注意的是, 这些对话框没有实际的文件处理逻辑, 它只是给你一个文件路径方便处理而已, 你看这里并没有`a.txt`
+
+![image-20251022232105616](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251022232105616.png)
+
+具体的文件处理逻辑我们会在后续章节讲的(以 Qt 的方式)
+
+---
+
+接下来说的是`QFontDialog`, 字体对话框. 用于检索系统中存在的字体并让用户选择
+
+我们也是直接上 code, 同样的, 我们还是使用静态函数这种方法使用它们
+
+![image-20251023100751160](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023100751160.png)
+
+这里`getFont`的第一个参数表示用户最后是通过`OK`还是`Cancel`这个键结束窗口的, 如果是`Cancel`, 可能是用户没有找到心仪的字体, 所以我们就不需要设置
+
+运行
+
+![image-20251023100916784](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023100916784.png)
+
+![image-20251023100832627](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023100832627.png)
+
+![image-20251023100847055](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023100847055.png)
+
+![image-20251023100900358](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023100900358.png)
+
+----
+
+接下来是 `QInputDialog`, 输入对话框, 用来进行临时的输入操作, 按照输入的数据类型, 可以分为, 整型, 双精度浮点型, 字符串. 
+
+与以往一样, 我们依旧直接使用其内置的静态函数
+
+首先是整型
+
+![image-20251023115157006](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023115157006.png)
+
+运行, 点击按钮
+
+![image-20251023115245545](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023115245545.png)
+
+如果我们取消的话, 输出的就是零
+
+![image-20251023115442282](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023115442282.png)
+
+因为 `getInt` 有一个默认的输出值
+
+![image-20251023115540385](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023115540385.png)
+
+浮点数也差不多
+
+![image-20251023115922835](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023115922835.png)
+
+![image-20251023120044782](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023120044782.png)
+
+![image-20251023120114105](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023120114105.png)
+
+字符串则稍有不同, 它必须要输入一个 `QStringList`, 作为预选项, 因为它实际上里面有一个 `QComboBox` 
+
+![image-20251023121310473](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023121310473.png)
+
+运行
+
+![image-20251023121300504](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023121300504.png)
+
+我们可以选择预选项, 也可以直接输一个字符串
+
+![image-20251023121357300](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023121357300.png)
+
+![image-20251023121413689](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023121413689.png)
+
+
+
 # 完
 
