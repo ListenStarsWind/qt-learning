@@ -5534,5 +5534,277 @@ code 中添加槽函数
 
 
 
+## 系统相关
+
+既然我们进行的是桌面开发, 那自然离不开系统的各种支持, 嵌入式当我没说, 下面, 我们就去了解 Qt 与系统相关的知识, 包括, 事件, 文件操作, 多线程编程, 网络编程, 多媒体资源(视频, 音频)使用, 与之相关的理论知识, 我们在 Linux 中已经学习过, 所以下面我们主要侧重于实操.
+
+### 事件
+
+事件是操作系统本身就有的一个概念, 在我们与操作系统进行各种交互的时候, 就会产生各种各样的事件, 不同的事件就可以对应不同的逻辑, 从而让程序的行为更加多样, 以满足更复杂的业务需求. Qt 自身也对系统接口进行了封装, 在其基础上产生了 Qt 自身的事件概念.   另外, 或许你从上述描述中, 发现事件和信号槽机制非常相似, 实际上, Qt 特有的信号槽机制正是在 Qt 事件的基础上进一步封装得到的. 在绝大多数情况下, 仅使用信号槽其实够用了, 但有些特殊情况下, 比如, 用户的行为, 没有与之对应的信号, 我们也曾经说过, 自定义信号函数只是对原有信号函数的重新组织, 但并没有凭空造出一个全新的信号, 像这种情况, 我们就要从事件的角度描述用户的行为, 从而对程序进行更精细化的控制.
+
+Qt 的所有事件均是对抽象类 `QEvent` 的继承, 需要注意的是, 有些事件也不是由用户产生的, 而是由操作系统系统自己产生的, 如定时器事件. Qt 的常见事件继承体系如下
+
+![image-20251023205502669](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023205502669.png)
+
+常见事件如下
+
+| 事件名称     | 事件类型                     | 事件描述                                                     |
+| ------------ | ---------------------------- | ------------------------------------------------------------ |
+| 鼠标事件     | QMouseEvent                  | 捕获鼠标操作，如点击、双击、按下、释放或移动，包含鼠标位置和按键信息。 |
+| 键盘事件     | QKeyEvent                    | 捕获键盘按键按下或释放，包含键值、修饰键（如Ctrl、Shift）等信息，用于键盘输入处理。 |
+| 定时器事件   | QTimerEvent                  | 由QTimer触发，用于定时执行任务，包含定时器ID，适用于周期性操作或延时处理。 |
+| 进入离开事件 | QEnterEvent / QLeaveEvent    | 捕获鼠标进入或离开控件区域，常用于触发悬停效果或状态切换。   |
+| 滚轮事件     | QWheelEvent                  | 捕获鼠标滚轮滚动，包含滚动方向和距离，常用于缩放或滚动界面内容。 |
+| 绘屏事件     | QPaintEvent                  | 触发窗口或控件重绘，用于更新界面图形或执行自定义绘制操作。   |
+| 显示隐藏事件 | QShowEvent / QHideEvent      | 捕获控件或窗口显示或隐藏，适用于初始化显示内容或清理隐藏时的资源。 |
+| 移动事件     | QMoveEvent                   | 捕获窗口或控件位置改变，包含新旧位置信息，用于响应位置调整。 |
+| 窗口事件     | QWindowStateChangeEvent      | 捕获窗口状态变化，如最大化、最小化、恢复或全屏切换，用于窗口状态管理。 |
+| 大小改变事件 | QResizeEvent                 | 捕获窗口或控件大小改变，包含新旧尺寸信息，用于调整布局或界面内容。 |
+| 焦点事件     | QFocusEvent                  | 捕获控件获得或失去焦点，包含焦点进入或离开信息，常用于输入控件的状态管理。 |
+| 拖拽事件     | QDragEnterEvent / QDropEvent | 处理拖拽操作，捕获拖拽进入和释放事件，用于文件拖放或自定义拖放行为。 |
+
+#### 鼠标事件
+
+一般来说, 事件的一般处理方法都是重写其对应的 Event 函数. 在 Qt 中, 几乎所有的 Event 函数都是虚函数, 通过重写, 我们就可以赋予事件全新的响应逻辑.
+
+下面我们先以进入离开事件为例, 介绍事件的基本处理方法. 我们将会在 Widget 窗口中创建一个控件, 当鼠标进入该控件时, 便会出发鼠标进入事件, 离开就会出发鼠标离开事件, 默认情况下, 这两个事件都是空的, 我们将通过重写增加新逻辑, 为它们添加效果.
+
+我们可以先从 Qt 助手中, 找找 `QEnterEvent / QLeaveEvent`这两个事件
+
+![image-20251023211524656](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023211524656.png)
+
+大意就是, 这个事件处理方法可以在子类中重新实现, 以接收控件进入事件, 并且, 事件本身也会被当做参数传入.
+在鼠标光标进入控件时事件发送.
+
+接下来我们创建一个新的项目, Widget 或者 Main Window 都行, 我这里为了方便就选择 Widget 了
+
+首先我们在 designer 里加个标签, 为了方便观察, 我们可以在 frame shape 里选择 Box 效果, 以添加边框, 以明确控件的边界
+
+![image-20251023214538543](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023214538543.png)
+
+![image-20251023214559782](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023214559782.png)
+
+此时直接运行, 当然什么效果都不会有
+
+![image-20251023214702412](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023214702412.png)
+
+下面, 我们将基于 `QLabel` 继承出 子类 `Label`, 以重写事件函数.
+
+这边我已经手写了头文件
+
+![image-20251023220552096](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023220552096.png)
+
+我也不是很清楚他为什么参数不统一, 可能是他又加了一些新的内容, 总之, 为了覆写成功, 我们需要和被覆写的函数一致, 而在刚刚的 Qt 助手查询中, 它们的函数签名就是长这样的, 同时考虑到被覆写函数权限是 protected, 所以这里我们也设置相同的权限, 另外我们还加上了 override 关键字, 进行语法层面上的检验. 因为这里并不涉及到信号槽, 所以我并没有写上 `Q_OBJECT` 这个宏. 
+
+Creator 那边可能会报警, 因为我们没有使用函数参数, 你可以用 (void) 向语言分析器标注一下, 告诉它我不用这个参数, 你不要给我报警, 我这边专门抑制了这个警告, 所以不会报警
+
+![image-20251023223605741](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023223605741.png)
+
+不过, 如果我们现在运行的话, 还是没有任何反应, 这其实也很简单, 因为我们 from file 里的标签还是 `QLabel`, 而不是我们的 `Label`, 它有反应就怪了.
+
+![image-20251023223855950](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023223855950.png)
+
+为此, 我们就需要改变 from file 中的标签类型
+
+右键选中, 点击"提升为"
+
+![image-20251023223931398](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023223931398.png)
+
+我们把新写的类添加进去
+
+![image-20251023224107768](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023224107768.png)
+
+这样我们就有了一个新的可选项
+
+![image-20251023224154521](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023224154521.png)
+
+选中它, 再点击 "提升"
+
+![image-20251023224550141](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023224550141.png)
+
+然后就可以重构运行了
+
+![image-20251023224755815](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251023224755815.png)
+
+然后我们就能看到效果了.
+
+之前我们似乎留了一个伏笔, 是写了一个请假批准程序, 然后说如果想做到鼠标刚进入按钮就移动, 就需要用到事件, 我这里就不写了, 你想写可以写.
+
+---
+
+下面我们看另一个与鼠标有关的事件, 鼠标点击事件, `mousePressEvent`, 并通过该事件,获取到鼠标点击的位置信息
+
+首先我们还是去 Qt 助手看一下, 被覆写的原函数具体签名长什么样, 以确保覆写成功, 我们这里还是用 `QLabel`作为目标空间, 所以选择这个主题
+
+![image-20251024103936986](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024103936986.png)
+
+![image-20251024104510252](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024104510252.png)
+
+![image-20251024104656379](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024104656379.png)
+
+我们看到, `QLabel`自身也对 `QWidget`的这两个事件函数进行重写, 那么下面, 我们将会仿照它们的函数签名, 再重写一次.
+
+然后我们正式创建一个项目
+
+在 designer  里, 我们把 `QLabel`弄大一点, 方便有更多的地方可供点击
+
+![image-20251024105049240](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024105049240.png)
+
+下面我们就新建一个自定义 `Label` class
+
+![image-20251024110118531](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024110118531.png)
+
+然后回过头去, 把 designer 上的标签提升
+
+![image-20251024110219724](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024110219724.png)
+
+我们需要知道的是, 参数 event 本身就包含着鼠标点击的位置
+
+![image-20251024111052073](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024111052073.png)
+
+运行
+
+我们这里点击一下
+
+![image-20251024111242030](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024111242030.png)
+
+![image-20251024111308939](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024111308939.png)
+
+或许不应该多加个空格
+
+另外 我们要注意一些, 这里(`position()`)坐标是相对于`Label`控件来说的, 比如这次我们换一个位置, 更靠近标签的左上角
+
+![image-20251024111640249](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024111640249.png)
+
+![image-20251024111706319](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024111706319.png)
+
+与之相比, `globalPosition()`是相对于屏幕的全局坐标, `scenePosition()`是相对于窗口Widget的全局坐标
+
+![image-20251024115213946](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024115213946.png)
+
+![image-20251024115247961](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024115247961.png)
+
+接下来是`globalPosition`
+
+![image-20251024115439876](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024115439876.png)
+
+![image-20251024115514385](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024115514385.png)
+
+下面我们注意一个现象, 我们知道, 鼠标不止一个按键, 一个标准的鼠标, 最起码会有左键, 右键, 中间(点击滚轮), 可能还会有什么前进键和后退键什么的, 它们的点击都会触发 `mousePressEvent`, 当然, 可能你的鼠标上还有更多的一些键, 这些键按下还算不算鼠标按下这就不清楚了, 它们可能更多是类域与快捷键的一种概念, 在系统上安装响应的鼠标驱动后, 把这些键映射成特定的命令.
+
+event 的 button 成员函数可以将点击的鼠标键以枚举类型 `Qt::MouseButton`返回以供判断
+
+![image-20251024122949329](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024122949329.png)
+
+运行
+
+![image-20251024123039104](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024123039104.png)
+
+接下来我们看另一个鼠标释放事件, 它其实和按下事件差不多, 这里我们就随便写几下.
+
+![image-20251024201310552](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024201310552.png)
+
+之前我们在`QPushButton`那里也说过, 像 clicked 这样的信号, 就相当于一次完整 press 和 release .
+
+接下来我们看鼠标双击事件
+
+![image-20251024201736422](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024201736422.png)
+
+还是一样的思路
+
+![image-20251024202103171](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024202103171.png)
+
+我们需要看到的一个关键点在于, 第二次按下的时候才会被视为"双击". 所以当同时使用双击和单击逻辑时, 由于双击也会触发单击事件, 所以你需要注意它们之间的逻辑会不会产生冲突.
+
+![image-20251024202200161](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024202200161.png)
+
+---
+
+接下来我们看鼠标移动事件
+
+![image-20251024202540344](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024202540344.png)
+
+对于这个文档, 需要注意第二段, "如果鼠标跟踪被关闭, 只有在按下鼠标按钮并移动鼠标时才会触发鼠标移动事件. 如果鼠标跟踪被开启, 即使没有按下鼠标按钮, 也会触发鼠标移动事件." 因为鼠标移动它不像点击那样是一个离散的事件, 而是一个连续的事件, 时刻都会移动, 所以会很吃硬件资源, 为此, 从节约资源的角度来说, 在默认情况下, 是不会触发鼠标移动事件的, 等会儿我们在代码实验中, 也会验证这段话.
+
+这次我们就不借助于其它控件, 就直接使用 this, 或者说 Widget自己.
+
+![image-20251024203807187](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024203807187.png)
+
+![image-20251024203926749](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024203926749.png)
+
+在不按下鼠标的情况下, 都不会触发此事件
+
+![image-20251024204115893](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024204115893.png)
+
+![image-20251024204141965](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024204141965.png)
+
+现在我在按下鼠标的前提下移动鼠标
+
+![image-20251024204253319](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024204253319.png)
+
+这样我们就能看到一连串的输出
+
+`setMouseTracking`可开启鼠标追踪, 从而在不按下的情况下也触发事件
+
+![image-20251024204727548](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024204727548.png)
+
+----
+
+接下来看鼠标滚轮滚动操作 
+
+![image-20251024204950574](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024204950574.png)
+
+对于 `QWheelEvent`对象, 可以通过成员函数`angleDelta`,获取滚动的角度, 以1/8度(即 0.125 度)为单位, 以正负分方向. `delta`的读音和希腊字母表的第 4 个字母(Δ, δ)相同, 德尔塔, 我们也知道, 这个符号在数学里经常表示变化量.
+
+![image-20251024210439364](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024210439364.png)
+
+![image-20251024212340619](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024212340619.png)
+
+我们运行一下
+
+![image-20251024212515165](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024212515165.png)
+
+我们看到一个很怪的现象, 那就是这里打印出来竟然有两个值, 鼠标滚轮不是只能在一个方向往前滚往后滚吗? 他怎么有两个方向? 这其实是从各类平台硬件的适配性上, 一方面, 现在已经有了一些比较高级的鼠标, 它确实不止垂直方向这一个方向可以滚, 它在水平方向上也是可以滚的, 另一个更为重要的原因是, 触控板的两指滑动实际上也是被视为 "wheel"的, 对于这种情况, 很明显那确实不止一个方向. 这里 120 是传统鼠标硬件设计的一个标准, 单次转动角度为 120 * 1/8° = 15°, 称为"一个单位".
+
+实际上 Qt5 都没有`angleDelta`这个成员函数, 这个成员函数是从Qt6 开始被引入的, 原先Qt5 的`delta`成员函数在 Qt6已经被废弃了, 因为它只能表示一个方向. 
+
+另外还有一个`pixelDelta`接口, 用于精度更高的鼠标, 但缺点是普通鼠标可能用不了, 所以这里就不说了.
+
+#### 键盘事件
+
+相比鼠标, 键盘的花样就少一些, 不就按吗? 顶多来个组合键, 所以这一小节篇幅挺小. 另外, 这一节的内容和按钮那里说的快捷键绑定, 也就是 `QShortCut` 有些重合的内容, 主要是对于按键的表示方面.
+
+我们还是先看看函数原型
+
+![image-20251024220304140](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024220304140.png)
+
+其中比较重要的一点, 那就是对于焦点的强调, 这其实之前我们也说过, 控件只有获得了焦点才可以读标准输入.
+
+![image-20251024221638821](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024221638821.png)
+
+在获得焦点前提下, 运行
+
+![image-20251024221838474](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024221838474.png)
+
+不过一般情况下, 我们不会使用 text 成员函数作为核心逻辑支点, 而是使用 key 这个成员函数, 因为 key 的返回值是之前我们在 `QShortCut`那里见到的按键枚举常量的整型形式, 整型形式的优点就是相比字符串来说明显更好处理, 所以 text 更多只是看看按键反应, 把敲下的按键以人类的自然语言表示出来, 并且对于某些不可打印的按键, 他可能会显示空字符, 比如 单个 shift, 上图中的两个"\u", 一个是 ctrl a , 一个是 ctrl c
+
+![image-20251024222914189](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024222914189.png)
+
+我们看到这里 65 就是 `Key_A`枚举常量的十进制形式, 但这种表示方法, 很明显不利于我们的直接打印观察, 但对于代码逻辑判断很好用
+
+![image-20251024223121340](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024223121340.png)
+
+组合键也很简单,`QKeyEvent`有`modifiers`成员函数, 可以把修饰键取出来, 之前我们只是说, 它们低位全是零, 但并没有直接用 `modifiers`也就是修饰键的名字称呼它们
+
+![image-20251024224644161](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024224644161.png)
+
+![image-20251024224700191](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024224700191.png)
+
+![image-20251024224719908](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251024224719908.png)
+
+这样, 我们就可以为特定的按键组合增加特定的逻辑.
+
+
+
 # 完
 
