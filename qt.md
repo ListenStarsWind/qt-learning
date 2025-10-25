@@ -5804,6 +5804,64 @@ event 的 button 成员函数可以将点击的鼠标键以枚举类型 `Qt::Mou
 
 这样, 我们就可以为特定的按键组合增加特定的逻辑.
 
+#### 定时器事件
+
+之前, 我们在 `QLCDNumber`中就已经见过了定时器, 并通过信号槽机制对其进行了使用. 现在我们将从更底层的"事件"角度, 去再一次认识和了解他.
+
+`QObject class`中就已经有定时器事件函数
+
+![image-20251025093041996](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025093041996.png)
+
+其中, `startTimer`用于启动计时器, `killTimer`用于关闭计时器, `stop`用于停止计时.
+
+下面, 我们同样是使用 `QLCDNumber`, 利用定时器事件实现倒计时的效果.
+
+首先, 在 designer 中, 我们创建一个 `QLCDNumber`, 调整至适当大小, 并初始化`intVal`为"10"
+
+![image-20251025093720195](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025093720195.png)
+
+![image-20251025095236780](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025095236780.png)
+
+![image-20251025095252528](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025095252528.png)
+
+这里我们需要注意的是, `startTimer`会返回一个 int 类型作为 timer 的标识符, 因为所有的定时器都会来到 `timerEvent`, 所以需要对他们进行区分, 这里我先确认了 `timerID`, 才去做具体逻辑, 以便于之后增加新的定时器任务时不修改原代码.
+
+#### 几何属性改变事件
+
+所谓几何属性, 我们在之前说`QWidget`的 geometry 时就已经说过, 包含两个层面的属性, 一是位置属性, 二是尺寸属性. 尺寸属性在 `QLabel`还被使用过, 还记得吗? 阮梅的那张图片.
+
+还是一如既往, 我们先看原型函数
+
+![image-20251025104219182](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025104219182.png)
+
+其中, 参数`QMoveEvent`有成员函数`pos` 和 `oldPos`, 可以将新旧位置, 以 `QPoint`的形式进行返回.
+
+![image-20251025104404892](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025104404892.png)
+
+![image-20251025104423268](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025104423268.png)
+
+其中, `QResizeEvent`有成员函数 `size`和`oldsize`, 可以将新旧尺寸以 `QSize`的形式进行返回
+
+![image-20251025104956478](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025104956478.png)
+
+好的, 下面我们就直接来写代码
+
+![image-20251025110808902](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025110808902.png)
+
+![image-20251025110823189](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025110823189.png)
+
+窗口一启动, 其实就触发了一次移动和改变大小事件
+
+![image-20251025110953133](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025110953133.png)
+
+接下来移动窗口
+
+![image-20251025111019620](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025111019620.png)
+
+调整大小
+
+![image-20251025111048084](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025111048084.png)
+
 
 
 # 完
