@@ -5862,7 +5862,264 @@ event 的 button 成员函数可以将点击的鼠标键以枚举类型 `Qt::Mou
 
 ![image-20251025111048084](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025111048084.png)
 
+### 事件分发器
 
+接下要讲的 事件分发 / 事件过滤, 属于 Qt 事件机制中底层逻辑的一部分, 通过它们, 我们可以对事件进行更精细化的控制, 尽管它们绝大多数上都用不到.
+
+首先看事件分发器, 它是源自于 `QObeject`的一个成员函数
+
+![image-20251025120745451](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025120745451.png)
+
+其在 Qt 事件处理机制中扮演着"入口的角色". 对于 Qt 的事件处理, 其流程一般是这样的(等会儿我们会把这个流程说的更仔细): 事件生成并被放入事件队列中, 事件循环将事件从队列中取出, 并调用自身对象的`event`函数, `event`函数内部以分支结构的形式将执行流导向具体的事件处理函数, 也就是我们在之前看到的那些 `xxxEvent`. 
+
+因此, 对于事件的处理, 我们可以像之前那样在执行流的末尾进行处理, 也可以来到 `event`这个上游来进行处理. 为了区分各类事件, `QEvent`在内部有名为`type`的枚举属性, 用来对不同的事件进行区分, 以形成不同的分支.
+
+![image-20251025130501019](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025130501019.png)
+
+对于`event`这个函数的返回值, 则牵扯到 Qt 事件处理的具体细节, 总的来说, 该返回值用于供 Qt 事件分发机制判断该事件是否处理完毕. 具体怎么做的, 我们会在更详细那个流程版本里面说. 
+
+好的, 下面我们从代码的角度来稍微演示一下. 我们将以鼠标点击事件为例, 一方面, 我们会重写特定的 `mousePressEvent`, 另一方面, 我们也会重写`event`
+
+![image-20251025131853791](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025131853791.png)
+
+注意, 助手上的 event 可是在 public 中的呦
+
+![image-20251025132037728](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025132037728.png)
+
+运行
+
+![image-20251025132154396](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025132154396.png)
+
+这里我们看到, 全部都是在 event 那里处理的, 你可能会说最后一个不是. 那是因为最后一个是点的间隔太短了, 被视为双击, 第二次点击被具体时间函数处理了.
+
+如果不返回的的, 代码就会继续运行, 从而把具体的事件函数也执行一下.
+
+![image-20251025132504082](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025132504082.png)
+
+当然, 你可能会问返回 false 会怎么样, 不要着急, 他会在更详细的那个流程说完之后再说的.
+
+### 事件过滤器
+
+事件过滤器和事件分发器的关系很紧密, 有人认为, 事件分发器其实是事件分发机制(注意是分发机制, 不是分发器)的另一个组成部分. 我本人并不认同这种观点. 产生这种分歧的原因可能是在于我们之间对于分发, 过滤这些概念在职责范围的划分上有一个粗细之分. 在此处, 我们就不纠结这个分类学了.
+
+事件过滤器的执行其实发生在事件分发之前. 所以其实我个人对于"事件分发"这个名字也感觉有一些不妥. 不知你是否注意过, main 函数里还有另一个对象, 其类型为 `QApplication`, 它是干什么的?
+
+![image-20251025133639816](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025133639816.png)
+
+(此处你可能更感兴趣的是我 main 函数的其它内容, 这些内容是为了让 `qDebug` 直接往 shell 上输出信息而存在的, 与本节内容无关, 请忽略它们)
+
+这里涉及到 Qt 事件处理的几乎整个流程：
+
+`QApplication::exec` 逻辑中的一部分扮演着“事件循环”的角色，负责管理 Qt 中的事件。具体来说，它在内部维持一个事件队列，在程序初始化完成后持续循环，将发生的事件（如鼠标点击、键盘输入）放入队列，并在合适时机通过 `QApplication::notify` 分发给目标控件。分发的具体流程是：首先检查事件的目标对象（`receiver`）是否安装了事件过滤器，若有，则依次调用过滤器的 `eventFilter` 方法，若过滤器返回 `true`，事件被截胡，流程提前结束；若返回 `false` 或无过滤器，则调用目标对象的 `event()` 方法。若 `event()` 返回 `false`，表示事件未被处理，`QApplication::notify` 会顺着对象树上溯，调用父对象的 `event()`，直到事件被接受（返回 `true`）或无父对象为止。无论哪条路径，事件都从 `QApplication` 进入 `QWidget` 的对象树体系，依托父子关系进行处理。
+
+![事件处理流程图](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025141730547.png)
+
+对于事件过滤器，它负责在事件到达目标对象前进行预处理，由父对象优先控制事件处理逻辑。使用过滤器需通过 `installEventFilter` 安装。需区分：事件过滤器是执行过滤的对象，而 `eventFilter` 函数定义具体的过滤逻辑。安装过滤器的动作是将目标控件的事件处理逻辑交给其父对象。例如，`ChildWidget->installEventFilter(ParentWidget);` 表示 `ChildWidget` 的事件先送往 `ParentWidget` 的 `eventFilter` 方法，由父对象决定是否处理或继续传递。用个比喻：在中国的法律体系中，邮政法高于地方道路管理法，若地方限高杆阻碍邮政运输，邮政可直接撞开，且地方政府需赔偿车辆损失，这类似地方将运输逻辑上交中央邮政部门，由更高层次判断。
+
+事件过滤器的工作原理是这样的：当事件到达目标对象（如 `ChildWidget`）时，若安装了过滤器，`QApplication::notify` 会先调用过滤器对象的 `eventFilter` 方法。若未重写 `eventFilter`，调用基类实现（通常是 `QObject::eventFilter`，默认返回 `false`），等同于无过滤器，事件流向目标对象的 `event()`。若重写 `eventFilter`，可以直接处理事件并返回 `true` 终止流程（“截胡”），或返回 `true` 但不处理（故意使功能失效，或许你该充钱解锁新功能），甚至不返回，让基类的 `QWidget::eventFilter` 继续执行，形成“接力赛”。但我不推荐“接力赛”写法，因 Qt 作为 C++ 框架，天然支持多态，若子类未显式调用基类 `eventFilter`，可能导致逻辑丢失，引发对接问题或 bug。顺便说一句，若同一对象安装多个过滤器，后安装的先执行。例如：
+
+```cpp
+child.installEventFilter(filter1); // 先安装
+child.installEventFilter(filter2); // 后安装，先执行
+```
+
+除控件级过滤器外，`QApplication` 还支持全局过滤器，通过 `qApp->installEventFilter` 安装，可监控所有对象的事件，适合全局事件拦截（如记录所有键盘输入）。从效果看，事件过滤器像是“从上向下”控制（父对象优先处理），但更准确的理解是：事件先触发父对象的 `eventFilter` 回调，再决定是否流向目标对象。
+
+若事件过滤器未截胡，事件到达目标对象的 `event()` 方法。`event()` 默认根据事件类型（如 `QMouseEvent`、`QKeyEven`）分发到具体处理函数（如 `mousePressEvent`、`keyPressEvent`）。开发者可重写 `event()`，直接处理事件并返回 `true` 表示处理完毕，或返回 `false` 继续执行基类的 `event()` 逻辑，甚至玩“接力赛”，但需谨慎多态问题。值得注意的是，某些事件（如 `QPaintEvent`）不会上溯父对象，仅在目标对象处理，这与鼠标、键盘事件的行为不同。
+
+若 `event()` 返回 false，表示事件未被处理，`QApplication::notify` 会继续干活，通过对象树上溯，调用父对象的 `event()`，直到事件被接受（返回 `true`）或无父对象为止。伪代码如下：
+
+```cpp
+function QApplication::notify(receiver, event):
+    // 先查过滤器，后安装的先执行
+    for filter in reverse(receiver.eventFilters()): // 逆序遍历
+        if filter.eventFilter(receiver, event): // 调用过滤器
+            return true // 过滤器截胡，事件处理完
+    // 迭代调用 event()
+    current = receiver
+    while current != null:
+        if current.event(event): // 调用 event()
+            return true // 事件处理完
+        current = current.parent() // 顺着对象树找爹
+    return false // 没人管，事件没处理
+```
+
+这样，Qt 事件机制既支持过滤器“从上向下”的预处理，也支持未处理事件“从下向上”的上溯传播，还允许中途截胡，灵活又强大。看来我们什么都不缺了！
+
+好的, 下面我们就实际写一些代码, 看看效果.
+
+首先实验事件过滤器的回调效果及"截胡能力"
+
+首先我们先从 designer 那里加两个控件, 我们就在这里随便加个按钮和标签了, 都是我们很常见的控件
+
+![image-20251025165755970](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025165755970.png)
+
+我们把标签提升一下
+
+![image-20251025172916254](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025172916254.png)
+
+![image-20251025172930763](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025172930763.png)
+
+![image-20251025173004635](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025173004635.png)
+
+我们打算让 `Widget` 做一下事件处理的上级, 所以, 在其中重写一下`eventFilter`, 我们先用默认的, 即直接返回 false 的形式进行对比
+
+![image-20251025173259568](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025173259568.png)
+
+接着, 我们为 label 安装事件过滤器, 让这个事件过滤器回调`Widget::eventFilter`
+
+![image-20251025173448738](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025173448738.png)
+
+运行
+
+![image-20251025173717587](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025173717587.png)
+
+我们看到, 执行了具体的事件函数. 接下来我们截胡一下
+
+![image-20251025174404745](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025174404745.png)
+
+运行
+
+![image-20251025174443213](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025174443213.png)
+
+不 return, 继续执行, 逻辑接力
+
+![image-20251025174634720](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025174634720.png)
+
+----
+
+好, 接下来还是一个项目, 我们看看如果最终到 `event`还不返回 true 会怎么样, 会不会想之前说的那样, 往上级找呢?
+
+首先我们也重写一下 `Widget::mousePressEvent`
+
+![image-20251025175129602](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025175129602.png)
+
+然后在 Label 那边, 我们故意让 event 返回 false
+
+![image-20251025175454201](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025175454201.png)
+
+运行, 这样就接力到 `Widget` 那里了
+
+![image-20251025175622783](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025175622783.png)
+
+当然, 接力要谨慎, 一方面你可能没衔接好, 导致现象不对, 另一方面, 因为多态, 你可能以为对接上了, 但实际上对接用的是基类的, 效果可能就会和预料的不太一样, 比如说, 我们先把 Label 的 event 改一下, 在这里处理完逻辑
+
+![image-20251025180828993](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025180828993.png)
+
+然后我们再建一个新的`myLabel class`
+
+![image-20251025181304488](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025181304488.png)
+
+![image-20251025181549259](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025181549259.png)
+
+再一次提升
+
+![image-20251025181643420](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025181643420.png)
+
+运行
+
+![image-20251025181731427](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025181731427.png)
+
+你可能就会奇怪了, 怎么没有"东坡居士"呢? 你说为什么呢? 因为你没有把 event 一并覆写.
+
+---
+
+下面我们看看一个控件安装了多个事件过滤器, 其执行顺序是怎么样的.
+
+我们还是把标签变回之前的 Label 
+
+然后提升一下另一个按钮控件
+
+![image-20251025190315961](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025190315961.png)
+
+去写一下 `Button class`
+
+![image-20251025191408172](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025191408172.png)
+
+![image-20251025191354232](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025191354232.png)
+
+然后再给 Labe 装一个事件过滤器, 注意, 尽管在上面我说事件过滤器是子对象回调父对象`eventFilter`方法, 但其实上, `installEventFilter`的参数也可以完全和父子关系无关, 如果有关的话, 事件过滤器应该只能装一个, 毕竟只能有一个父对象, 不是吗, 此处, 我们就为 Label 装了一个回调 `Button::eventFilter`的过滤器, 注意此处安装的先后顺序
+
+![image-20251025192516086](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025192516086.png)
+
+运行
+
+![image-20251025192619362](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025192619362.png)
+
+看上去感觉不太对, 怎么就打印一份的, 首先, 确实是后安装的先执行, 只不过由于`Button::eventFilter`那个分支返回了 true, 所以事件被认为已经结束完毕, 所以没有遍历第二个过滤器.
+
+![image-20251025192759374](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025192759374.png)
+
+再次运行
+
+![image-20251025192832276](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025192832276.png)
+
+----
+
+接下来我们说一下全局事件过滤器, 要使用它, 我们首先要专门从 `QObject`那里继承出一个全局过滤器类`GlobalFilter class`, 在里面同样是通过重写的方式实现一个全局过滤函数, 最后在 `QApplication`里安装过滤器, 回调`GlobalFilter::eventFilter`.
+
+全局过滤器相当于在咱们之前说的迭代最前面又加了一层处理逻辑, 同样的, 返回 true, 提前结束, 返回 false, 继续执行
+
+```cpp
+function QApplication::notify(receiver, event):
+    // 全局过滤器先来
+    for globalFilter in qApp.eventFilters(): // qApp 的全局过滤器
+        if globalFilter.eventFilter(receiver, event):
+            return true // 全局截胡，啥都别干了
+    // 局部过滤器，后安装先执行
+    for filter in reverse(receiver.eventFilters()):
+        if filter.eventFilter(receiver, event):
+            return true // 局部截胡
+    // 迭代调用 event()
+    current = receiver
+    while current != null:
+        if current.event(event):
+            return true // 事件处理完
+        current = current.parent() // 顺着对象树找爹
+    return false // 没人管，事件没处理
+```
+
+好的, 下面我们就写一下这个全局过滤器
+
+![image-20251025195800312](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025195800312.png)
+
+![image-20251025195745711](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025195745711.png)
+
+好, 现在在`QApplication`上安装过滤器
+
+![image-20251025200047961](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025200047961.png)
+
+![image-20251025200149749](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025200149749.png)
+
+此处的 `qApp`是一个全局宏, 表示当前程序使用的 `QApplication`或者子类, 包含头文件`QApplication`即可使用. 注意, 不要忘了 delete .
+
+运行
+
+![image-20251025210256740](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025210256740.png)
+
+我们看到, 看起来全局过滤器确实有用, 但它又引来了一个新的问题: 怎么这全局过滤器看起来像是执行了两遍?
+
+这其实就牵扯到全局过滤器的一个典型问题：它太全局了。全局到什么程度呢？不仅会捕捉你自己创建的 `Widget`，还会连带把 Qt 在底层封装的各种系统抽象窗口对象也算进来。
+
+Qt 自己在封装窗口系统时，会在底层维护一些对象，比如用来接管原生窗口消息的 `QWindow`、事件派发的中转层对象，甚至有时候连内部生成的临时窗口（比如输入法面板、菜单弹窗、隐藏的透明层）也会进入你的全局过滤器。结果就是, 一次点击可能触发两次事件过滤: 一次来自底层抽象窗口（Qt 内部用的），一次来自你自己的 `Widget` 或它的子控件。
+
+这种重复触发自然是不希望出现的。思路也很直接：既然“底层窗口”和“真正的控件”在类型上有差别，那我们就在对象层面上做区分。
+
+Qt 的所有可见控件——包括 `QPushButton`、`QLabel`、`QTableWidget` 这些——都继承自 `QWidget`。而底层那些中转对象，比如 `QWindow`、`QNativeInterface`、`QPlatformWindow`，并不继承它。所以只要判断当前 `obj` 能不能转成 `QWidget`，就能区分出它是不是“真正的控件”。
+
+实现上很简单，用 `qobject_cast` 就可以：对于能转换的, 它会转换成功, 转不了的, 返回空. 这样我们就能保证，全局过滤器只处理真正的控件事件，而把系统底层那些内部窗口排除在外。
+
+![image-20251025212835266](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025212835266.png)
+
+![image-20251025212917967](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025212917967.png)
+
+还有一件重要的是, 注意可不要写成这样
+
+![image-20251025213143234](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025213143234.png)
+
+这是因为，Qt 的一些底层机制事件——比如图像绘制、界面刷新、缓冲区更新这些——它们的 `obj` 并不是继承自 `QWidget` 的，而是由更底层的窗口对象（如 `QWindow`、`QBackingStore`）来接收。所以如果你直接在 `widget == nullptr` 时返回 `true`，就会把这些事件也一并拦掉，导致绘制链被中断，窗口看上去就像“卡住”或“空白”了一样。
+
+最后对于`QPaintEvent`这种事件, 它的特别之处在于其是一个图像绘制事件, 对于图像绘制事件, Qt 有所谓"绘制隔离"的说法, 即, `QPaintEvent` 的作用域限于目标控件, 每个控件有自己的绘制区域, 处于性能上的考虑, 父控件不会处理子控件的绘制事件.
 
 # 完
 
