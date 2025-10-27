@@ -1,0 +1,60 @@
+# =====================
+# Qt6 / CMake / Ninja
+# =====================
+
+# CMake build folders
+/build*/
+
+# Qt generated files
+.moc/
+.uic/
+.rcc/
+
+# Qt Designer UI headers
+ui_*.h
+
+# Qt resource files
+qrc_*.cpp
+
+# Precompiled headers
+*.pch
+
+# =====================
+# Binary / Object files
+# =====================
+*.exe
+*.dll
+*.obj
+*.o
+*.a
+*.so
+*.so.*
+
+# =====================
+# Temporary / backup files
+# =====================
+*~
+*.autosave
+*.orig
+*.rej
+*.swp
+*.DS_Store
+Thumbs.db
+
+# =====================
+# IDE / Editor files
+# =====================
+# Qt Creator
+*.pro.user*
+*.qbs.user*
+CMakeLists.txt.user*
+
+# VSCode
+.vscode/
+
+# Vim / Emacs
+.*.swp
+*.flc
+
+# Python bytecode
+*.pyc

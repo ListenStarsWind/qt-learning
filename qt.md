@@ -5862,7 +5862,7 @@ event 的 button 成员函数可以将点击的鼠标键以枚举类型 `Qt::Mou
 
 ![image-20251025111048084](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251025111048084.png)
 
-### 事件分发器
+#### 事件分发器
 
 接下要讲的 事件分发 / 事件过滤, 属于 Qt 事件机制中底层逻辑的一部分, 通过它们, 我们可以对事件进行更精细化的控制, 尽管它们绝大多数上都用不到.
 
@@ -5898,7 +5898,7 @@ event 的 button 成员函数可以将点击的鼠标键以枚举类型 `Qt::Mou
 
 当然, 你可能会问返回 false 会怎么样, 不要着急, 他会在更详细的那个流程说完之后再说的.
 
-### 事件过滤器
+#### 事件过滤器
 
 事件过滤器和事件分发器的关系很紧密, 有人认为, 事件分发器其实是事件分发机制(注意是分发机制, 不是分发器)的另一个组成部分. 我本人并不认同这种观点. 产生这种分歧的原因可能是在于我们之间对于分发, 过滤这些概念在职责范围的划分上有一个粗细之分. 在此处, 我们就不纠结这个分类学了.
 
@@ -6120,6 +6120,152 @@ Qt 的所有可见控件——包括 `QPushButton`、`QLabel`、`QTableWidget` �
 这是因为，Qt 的一些底层机制事件——比如图像绘制、界面刷新、缓冲区更新这些——它们的 `obj` 并不是继承自 `QWidget` 的，而是由更底层的窗口对象（如 `QWindow`、`QBackingStore`）来接收。所以如果你直接在 `widget == nullptr` 时返回 `true`，就会把这些事件也一并拦掉，导致绘制链被中断，窗口看上去就像“卡住”或“空白”了一样。
 
 最后对于`QPaintEvent`这种事件, 它的特别之处在于其是一个图像绘制事件, 对于图像绘制事件, Qt 有所谓"绘制隔离"的说法, 即, `QPaintEvent` 的作用域限于目标控件, 每个控件有自己的绘制区域, 处于性能上的考虑, 父控件不会处理子控件的绘制事件.
+
+### 文件
+
+到目前为止, 我们已经见到过好几个体系的文操作体系了.
+
+在 C语言, 我们学习了 `fread, fwrite`读写文件, `fclose`关闭文件; 在 Linux, 我们为了了解系统的文件操作原理, 我们还学习了`open, read, write, close`; 在 C++, 我们学习了`fstream`打开文件, `<< >>`读写文件, `close`关闭文件. 我们看到, 文件操作在计算机中始终都是一个绕不过去的话题. 这对于 Qt 来说, 也是如此. 早期 Qt 中, 由于 C++ 还未标准化, 因此, Qt 中也有自己的文件操作接口, 并且, 相比于上面的三种, Qt 本身的文件操作, 显然更兼容 Qt 框架本身, 所以对于文件操作来说, 我们更多的是使用 Qt 自己的这一套.
+
+Qt 的文件操作, 同样是打开读写关闭. Qt 中, 有名为 `QFile`的类, 而 `QFile`自身, 也处在 Qt IO 这个继承体系当中.
+
+![image-20251026105719376](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026105719376.png)
+
+其中, `QIODevice`是一切的起源, 作为 `IO`操作的根基类存在, 从中派生出了, 文件IO`QFileDevice`, 网络IO`QAbstractSocket`, 串口通信`QSerialPort`,(一般用在嵌入式里, 用作开发板的交互) 蓝牙通信`QBluetoothSocket`, 进程间通信`QProcess`,(相当于是 fork / exec 操作进行的封装) 缓冲区`QBuffer`.   稍后, 我们也会讲网络.
+
+对于 `QFileDevice` 来说，它派生出了两条常用分支：一类是负责一般文件读写的 `QFile`，另一类则是专门用于安全保存的特化类 `QSaveFile` .`QSaveFile` 采用了一种在计算机系统中十分常见的文件保存策略：我们都知道，直接重写一个文件意味着必须先清空旧内容，再写入新内容。问题在于——如果在写入过程中出现意外中断，旧内容已经被删除，而新内容又只写了一半，最终可能导致整个文件损坏. 为避免这种风险，常见做法是：先在磁盘上创建一个临时文件，将新内容完整写入其中；待写入成功后，再以原子方式替换旧文件。这样，即使中途失败，也不会破坏原文件。对于`QTemporaryFile`,它也是临时文件, 但需要注意的是，虽然 `QSaveFile` 的临时文件与 `QTemporaryFile` 在形式上都属于“临时文件”，但二者并不相同：`QTemporaryFile` 通常位于系统级的临时目录（如 Linux 下的 `/tmp`），用于一般性的短期数据存储；而 `QSaveFile` 的临时文件会与目标文件放在同一目录下，以便在 `commit()` 时进行原子替换。这种“同目录、原子替换”的设计，是 `QSaveFile` 区别于 `QTemporaryFile` 的关键所在。
+
+接下来我们就看一下 `QFile class`的具体接口
+
+包括它自己的
+
+![image-20251026112948485](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026112948485.png)
+
+它继承下来的
+
+![image-20251026114117429](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026114117429.png)
+
+首先是构造, 你可以指定相对路径和绝对路径, 甚至是 `qrc` 的那种路径, 还可以指定父对象什么的, 挂到对象树上. 需要注意的是, `qrc` 文件是天然只读的, 它们的定位就是为程序提供一个静态的资源文件, 所以是处于一种被保护的状态, 因此只能读.
+
+对于打开, 有针对于 C语言 和 系统的`FILE*`及`int fd`版本, 不过更多情况下, 我们还是直接用最简单的方法, 也就是继承下来的就一个参数的, 只有打开方式的 `open`, 他会直接打开之前构造时输入的那个文件, 具体的打开方式枚举如下
+
+| 枚举值                                    | 含义                 | 数值（十六进制） | 典型用途                        |
+| ----------------------------------------- | -------------------- | ---------------- | ------------------------------- |
+| `QIODeviceBase::NotOpen`                  | 设备未打开           | `0x0000`         | 表示当前未处于打开状态          |
+| `QIODeviceBase::ReadOnly`                 | 以只读模式打开       | `0x0001`         | 从设备读取数据                  |
+| `QIODeviceBase::WriteOnly`                | 以只写模式打开       | `0x0002`         | 向设备写入数据                  |
+| `QIODeviceBase::ReadWrite`                | 可读可写模式打开     | `0x0003`         | 同时支持读写操作                |
+| `QIODeviceBase::Append`                   | 追加模式             | `0x0004`         | 写入内容总在文件尾部            |
+| `QIODeviceBase::Truncate`                 | 截断模式             | `0x0008`         | 打开时清空旧内容                |
+| `QIODeviceBase::Text`                     | 文本模式             | `0x0010`         | 自动处理换行符（`\n` ↔ `\r\n`） |
+| `QIODeviceBase::Unbuffered`               | 不使用缓冲区         | `0x0020`         | 直接进行底层 I/O，不经缓存      |
+| `QIODeviceBase::NewOnly` *(Qt 6.3+)*      | 仅当文件不存在时创建 | `0x0040`         | 防止覆盖现有文件                |
+| `QIODeviceBase::ExistingOnly` *(Qt 6.3+)* | 仅当文件存在时打开   | `0x0080`         | 避免误创建新文件                |
+
+我们看到, 还是熟悉的比特位传参, 其中 `ReadWrite == ReadOnly | WriteOnly`.
+
+对于读, 除了`read`之外, 还包括指定读范围的`readLine`, `readAll`.
+
+在`QIODevice`中, 我们可以看到他们
+
+![image-20251026115704792](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026115704792.png)
+
+我们看到, 你可以选择手动控制一个缓冲区, 让它返回读出的字节数. 也可以让它直接返回一个字节数组
+
+对于写操作, 也是要看`QIODevice`
+
+![image-20251026120207670](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026120207670.png)
+
+close 没什么好说的, 就是把文件描述符给关了, 防止文件描述符表被占满, Linux 那里我们也说过很多次了.
+
+![image-20251026120427464](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251026120427464.png)
+
+#### 基本用法
+
+下面我们将通过 code 的形式去使用一下相关的接口.
+
+我们将会创建一个 Main Window application 项目, 在其中的 center widget 中加入一个输入框, 并在 Menu Bar 里加两个 Action : 保存 和 打开. 点击 保存 弹出对话框, 询问保存的位置, 点击 打开 , 询问打开位置, 并把文件内容显示在输入框中, 其实就是做一个非常简单的文本编辑器.
+
+首先, 我们知道 Main Window's designer 似乎对于中文不太友好, 所以对于我们这次全用 code 来写 
+
+![image-20251027113423850](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027113423850.png)
+
+首先因为这是个文本编辑器, 所以一定涉及到字体, 而 text edit 的字体默认使用的是 Application 的字体, 所以我们首先设置一下全局字体, 关于宏 `qApp`, 我们在全局过滤器那里说过, 这里不做过多的解释. 接着我们对将要被用到的菜单栏和状态栏进行了确认, 设置了窗口标题, 用 text edit 替换了原来的 center widget (`setCentralWidget`会把旧的析构的, 我们不用担心), 将用到的 action 设置了进去, 并 connect, 由于这次槽函数都比较长, 所以我们就不用 lambda 了.
+
+接下来我们主要以文件保存为例
+
+![image-20251027114720517](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027114720517.png)
+
+在这里, 我选择了一种"没苦硬吃"的方式, 在堆上开辟 file 对象, 并为了让其在各个函数出口, 都能析构, 又用了C++版本的`RAII`技术, 即 `smart_ptr`, 实际上, 你完全可以用栈上对象实现更自然的, 更原生的, 更自动的`RAII`(就是不用管).
+
+这里我们使用的并非是`QFile`, 而是`QSaveFile`, 不用白不用.  首先是打开文件, 我们使用的 Qt 的保存文件对话框, 这里稍微多嘴一句, Qt 的打开 / 保存 文件对话框本质上是使用系统的接口, 也就是这个对话框主要是系统自己实现的, 而不是 Qt 实现的. 不知道你在日常生活中是否遇到过这样的场景, 就是往一些敏感路径保存文件会弹出一个权限确认窗口, 大致意思就是没权限, 向你确认一下管理员权限, 这个是系统实现的, Qt 本身没有这种功能.
+
+![image-20251027120151943](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027120151943.png)
+
+因此如果你在文件对话框里选择了敏感路径, 由于本质上对话框是系统的, 所以它也会向你确认的(也可能不让你存, 让你换个位置). 
+
+为什么我这里有多个函数出口呢? 主要就是为了差错处理. 如果出错, 我们弹个紧急消息对话框, 输出一下失败原因, 并结束函数. 成功打开, 那就把编辑框内容写进去. 之后就是原子性替换, 此处的 commit 应该是承诺交付的意思, 如果无法替换, 我们还是弹对话框, 成功就不弹对话框了, 因为那样侵入性似乎太强了.
+
+关于打开, 我们就使用一般的 `QFile`
+
+![image-20251027122046167](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027122046167.png)
+
+主体思路都是一样的, 此处就不省略了. 这里需要注意的是, 对于二进制文件, 可就不要用 `QString` 承接了, 我们在 Linux 收发 http 报文也说过原因: 二进制字节流可能会有很多 `\0`, 也就是终止符或者不可见字符, 乱转会出问题.
+
+运行
+
+![image-20251027122806060](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027122806060.png)
+
+当然, 它默认会出现在工作目录下.
+
+![image-20251027122847037](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027122847037.png)
+
+![image-20251027122902219](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027122902219.png)
+
+接下来是保存
+
+![image-20251027122957829](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027122957829.png)
+
+保存成功
+
+![image-20251027123041223](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027123041223.png)
+
+#### 文件属性
+
+`QFileInfo`是 Qt 提供的一个用于获取文件和目录信息的类, 其中提供了很多的方法, 常用的如下表
+
+| 方法                 | 说明                                                 |
+| :------------------- | :--------------------------------------------------- |
+| `exists()`           | 判断文件或目录是否存在                               |
+| `isFile()`           | 是否是普通文件                                       |
+| `isDir()`            | 是否是目录                                           |
+| `isReadable()`       | 当前进程是否可读                                     |
+| `isWritable()`       | 当前进程是否可写                                     |
+| `absolutePath()`     | 获取文件所在的绝对路径（不含文件名）                 |
+| `absoluteFilePath()` | 获取文件的完整绝对路径                               |
+| `fileName()`         | 获取文件名（含扩展名）                               |
+| `baseName()`         | 获取不带扩展名的文件名                               |
+| `completeBaseName()` | 获取多重扩展名之前的文件名（例如 `.tar.gz` → `tar`） |
+| `suffix()`           | 获取扩展名（不含点）                                 |
+| `completeSuffix()`   | 获取完整扩展名（例如 `.tar.gz` → `tar.gz`）          |
+| `size()`             | 获取文件大小（单位：字节）                           |
+| `created()`          | 获取文件创建时间                                     |
+| `lastModified()`     | 获取文件最后修改时间                                 |
+| `lastRead()`         | 获取文件最后访问时间                                 |
+
+`QFileInfo` 对象可以直接从路径字符串构造，也可以基于一个已有的 `QFile` 对象创建。当底层文件系统变化时，可调用 `refresh()` 重新更新信息。
+
+对于文件属性的获取, C++ 本来是没有的, 因此, 如果是纯 C++ 的话, 就需要调用系统接口, 对于 Qt 框架来说, 它也专门写了 `QFileInfo`这个类, 当然, C++ 17 也引入了`filesystem`, 用于获取文件属性.
+
+下面, 我们就使用一下 `QFileInfo`
+
+新建 Widgets Application 项目,  在其中添加按钮, 按钮按下, 弹出对话框, 选择文件, 然后将所选文件的若干属性进行输出
+
+![image-20251027133522439](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027133522439.png)
+
+![image-20251027133544663](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251027133544663.png)
+
+更多接口详见文档
 
 # 完
 
