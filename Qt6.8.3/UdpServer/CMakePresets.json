@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "clang-ucrt64-qt683", 
+      "displayName": "Clang UCRT64 (Portable Qt6.8.3)",
+      "generator": "Ninja", 
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "E:/toolchains/llvm/llvm-mingw-20250826-ucrt-x86_64/bin/c++.exe",
+        "CMAKE_C_COMPILER": "E:/toolchains/llvm/llvm-mingw-20250826-ucrt-x86_64/bin/cc.exe",
+        
+        "CMAKE_PREFIX_PATH": "E:/toolchains/Qt-LLVM", 
+        
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ]
+}

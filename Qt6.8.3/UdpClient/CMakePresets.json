@@ -1,0 +1,17 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "qt-llvm-green",
+      "displayName": "Clang 21.1.0 (Portable Qt6)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "E:/toolchains/llvm/llvm-mingw-20250826-ucrt-x86_64/bin/c++.exe",
+        "CMAKE_C_COMPILER": "E:/toolchains/llvm/llvm-mingw-20250826-ucrt-x86_64/bin/cc.exe",
+        "CMAKE_PREFIX_PATH": "E:/toolchains/Qt-LLVM/lib/cmake" 
+      }
+    }
+  ]
+}
