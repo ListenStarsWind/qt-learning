@@ -6625,5 +6625,36 @@ Creator 那边也有可能出现和我类似的问题: 找不到头文件, 这�
 
 你们如果想要启动多个客户端就从文件资源管理器里双击再次启动
 
+#### HTTP
+
+下面我们来说 `HTTP`, 和上面不一样, 这一次我们只写客户端, 还是那句话, `Qt`是写桌面应用的, 所以他只有客户端的`HTTP`类, 没有服务端的`HTTP`类, 而且客户端复杂程度当然比不上服务端, 大致流程都差不多, 所以`Qt`专门提供了客户端使用的`HTTP`接口, 这次我们的思路是, 把客户端当做一个简易的浏览器来使用, 输入一个`url`, 然后回显一下那个`html`纯文本.
+
+有关的关键类主要是三个: `QNetworkAccessManager, QNetworkRequest, QNetworkReply`
+
+`QNetworkAccessManager`提供了`HTTP`的核心方法, 
+
+| 方法                                              | 说明                                                 |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| `get(const QNetworkRequest&)`                     | 发起一个 HTTP GET 请求，返回 `QNetworkReply` 对象。  |
+| `post(const QNetworkRequest&, const QByteArray&)` | 发起一个 HTTP POST 请求，返回 `QNetworkReply` 对象。 |
+
+也仅仅是发送一个请求, 不是阻塞的, 其返回的`QNetworkReply`对象更像是一种句柄, 负责接收数据, 当收到来自服务端完整的响应数据后, 它会触发信号`finished`, 于是我们就可以解析并处理应答了
+
+| 方法                                           | 说明                                      |
+| ---------------------------------------------- | ----------------------------------------- |
+| `error()`                                      | 获取出错状态。                            |
+| `errorString()`                                | 获取出错原因的文本描述。                  |
+| `readAll()`                                    | 读取响应的 body 内容，返回 `QByteArray`。 |
+| `header(QNetworkRequest::KnownHeaders header)` | 按枚举值读取响应中指定的 header 的值。    |
+
+`QNetworkAccessManager`的参数`QNetworkRequest`表示请求的具体内容, 不包括正文, 如果你使用了需要正文的方法, 比如`post`, 正文作为另一个参数传入
+
+| 方法                                                         | 说明                                       |
+| ------------------------------------------------------------ | ------------------------------------------ |
+| `QNetworkRequest(const QUrl&)`                               | 通过给定的 `QUrl` 构造一个 HTTP 请求对象。 |
+| `setHeader(QNetworkRequest::KnownHeaders header, const QVariant &value)` | 为请求设置指定的标准 HTTP header。         |
+
+那我们知道, `HTTP`由请求行, 请求报头, 空行, 正文四部分组成, 其中请求报头就是一对对的`k-v`值, 这些`k-v`值就被称为`header`, 考虑到`v`值可能传各种类型, 比如字符串或者数字之类的, 所以这里用的类型是`QVariant`, `QVariant`就是一个泛用类型, 它可以承接各种类型的对象.
+
 # 完
 
