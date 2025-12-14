@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <!-- 资源文件说明见 res/resource_guide.txt -->
+    <qresource prefix="/">
+    <file>resource_guide.txt</file>
+    <file alias="canon.mp3">Rick Wakeman - The Granary Canon.mp3</file>
+    </qresource>
+</RCC>
