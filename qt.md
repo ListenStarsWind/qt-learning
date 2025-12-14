@@ -6730,9 +6730,99 @@ Creator 那边也有可能出现和我类似的问题: 找不到头文件, 这�
 
 ![image-20251214163606816](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214163606816.png)
 
+## 界面优化
 
+### QSS
 
+在之前, 我们已经介绍过 QSS, 但只是简略一谈, 下面我们就学习有关 QSS 的详细设置.
 
+在之前我们已经提到过，**C++ 代码层面的样式控制（即 `QStyle`）与 QSS 的样式控制，本质上是两条完全不同的路线**，它们并不是为了相互配合而设计的，因此在实际使用中也很难进行真正意义上的融合。
+
+同时，由于 **`QSS` 更贴近应用层**，当 `QSS` 与 `QStyle` 同时作用于同一控件时，**更靠近应用层的 `QSS` 会直接覆写 `QStyle` 的效果**，从表现上看，就形成了 `QSS` 优先级高于 `QStyle` 的结果。
+
+更关键的是，由于二者本身属于不同体系，这种覆写并不是“补充式”的，而是**完全式的覆写**。通俗地说，即便 `QSS` 中某个属性是空的，而 `QStyle` 中对应的属性是存在的，**最终呈现的效果依然是该属性为空**。也正因如此，在使用 `QSS` 时，常常会出现一种“样式丢失”的现象。
+
+需要特别注意的是，这种情况**与 `QSS` 自身内部的样式融合或层叠机制完全不同**。前者发生在 `QSS` 与 `QStyle` 之间，后者则是 `QSS` 规则体系内部的问题，二者不能混为一谈。具体细节我们之后再说.
+
+因此，这也意味着：**一旦决定使用 `QSS`，就应当默认由它负责该控件完整的视觉状态**。在代码层面的实践中，更合理的方式是——如果要用 `QSS`，就从一开始使用 `QSS`，而不是先依赖 `QStyle`，再在后期因样式冲突而切换到 `QSS`，否则就极易引发样式被覆写、甚至丢失的问题。
+
+下面我们就来看看 QSS 的基本语法, 其实在这方面 `QSS`和`CSS`是一样的, 都是
+
+```css
+选择器 {属性名: 属性值;}
+```
+
+其中选择器描述了样式生效的范围, 在之后, 我们会看到, 选择器可以描述某一特定类型及其子类型的组件群, 也可以描述某一类确定的类型, 或者某一个特定的组件. `{}`中的, 就是以键值对的形式对某一特定的样式进行设置.
+
+例如
+
+```css
+QPushButton {color: red;}
+```
+
+就是对`QPushButton`这个类及其子类, 其中的字体颜色, 设置为红色.
+
+接下来, 我们就写写代码, 实际看看效果.
+
+此处, 我们为`widget`增加了一个按钮
+
+![image-20251214212337632](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214212337632.png)
+
+运行
+
+![image-20251214212628273](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214212628273.png)
+
+接下来, 我们为这个按钮设置`QSS`
+
+![image-20251214212917452](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214212917452.png)
+
+再次构建并运行, 就有
+
+![image-20251214212952929](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214212952929.png)
+
+用 RGB 也是可以的, 前面的色块是 code 自动渲染的效果
+
+![image-20251214213228252](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214213228252.png)
+
+![image-20251214213306237](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214213306237.png)
+
+在此处, 由于我们是通过`pushButton`进行设置的, 因此对于第二个按钮, 就不会生效.
+
+![image-20251214213552722](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214213552722.png)
+
+`QSS`会对指定的控件及其子控件生效, 只不过由于`pushButton`就他一个, 里面也没什么子控件, 所以看不出来这一点, 如果我们用`this`进行设置, 由于两个按钮都是`widget`的子控件, 所以它们都会被设置成指定的颜色.
+
+![image-20251214214626532](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214214626532.png)
+
+对于样式的实际生效范围, 除了看是谁设置的, 还要看选择器, 比如, 在这里, 我们又增加了`lineEdit`, 显然`lineEdit`是`this`的子控件之一, 但是由于不在选择器描述的范围内, 所以对他的字体不会生效
+
+![image-20251214215105470](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214215105470.png)
+
+你要是把这里的选择器改成通配符`*`, 那对于`this`及其之下的子控件就全部生效了
+
+![image-20251214215257060](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214215257060.png)
+
+不过我们一般更长使用的是全局样式设置, 这样不会东一个西一个, `QSS`就只在一个地方被设置, 更好管理.
+
+此处, 我们仍旧是新开一个项目, 加三个按钮
+
+![image-20251214220412890](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214220412890.png)
+
+之前设置全局事件的时候, 我们使用的是`main`中的`QApplication`, 同样的, 对于全局样式, 也是通过它来进行设置
+
+![image-20251214220728293](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214220728293.png)
+
+运行
+
+![image-20251214220755822](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214220755822.png)
+
+如果在设置全局样式的情况下又设置了局部样式, 显然, 此处若局部和全局冲突, 局部将覆写对应的全局设置, 但如果并不冲突, 效果就是全局设置和局部设置的效果叠加, 也就是样式层叠, 毕竟无论全局还是局部, 都是`QSS`, 因此对于不冲突的, 可以融合在一块, 更专业的叫法是层叠在一起.
+
+![image-20251214222443218](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214222443218.png)
+
+如果我们改颜色, 那就冲突了, 局部就会覆写全局
+
+![image-20251214222650950](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214222650950.png)
 
 # 完
 
