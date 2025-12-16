@@ -6820,9 +6820,116 @@ QPushButton {color: red;}
 
 ![image-20251214222443218](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214222443218.png)
 
-如果我们改颜色, 那就冲突了, 局部就会覆写全局
+如果我们改颜色, 那就冲突了, 局部就会覆写此处的全局
 
 ![image-20251214222650950](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214222650950.png)
+
+----
+
+在上述代码中，我们对 QSS 的设置主要是通过 `setStyleSheet` 并直接硬编码参数来完成的。这种方式在实际工程中存在两个明显的问题：一方面，`setStyleSheet` 分散在代码的各个位置，不利于样式的统一管理；另一方面，样式参数是写死在代码中的，一旦需要调整，不仅修改成本高，也不利于后期维护和迭代。
+
+因此，在实际项目中，样式表的设置更合理的做法是**将 Designer 的实时渲染能力与配置文件机制结合使用**。Designer 的优势在于可以直观地看到样式的实际渲染效果，便于快速调试并确定整体视觉方案，但其参数调整并不适合频繁修改；而配置文件的优势则在于与代码解耦，只需修改配置文件即可完成样式调整，无需改动或重新编译代码。
+
+基于这一点，可以采用如下流程：**先借助 Designer 的实时渲染确定一套默认的 QSS 样式**，再以该 QSS 作为模板，将其整理并写入样式文件中；程序在运行时读取该文件并应用样式。这样一来，用户便可以在既定的 UI 风格基础上，对部分细节进行微调，例如字体颜色、字体家族等，而程序则只需根据配置文件内容更新样式即可。
+
+在此基础上，还可以进一步**在概念和结构上区分“默认样式”与“用户可调样式”**：前者用于描述应用的完整、稳定的基础视觉状态，作为系统内置的样式模板；后者则仅覆盖少量、受控的参数，用于满足个性化或局部调整的需求。即便二者最终都以 QSS 文件的形式存在，这种分层也有助于明确各自的职责边界，避免单一样式文件承担过多责任，从而提升整体的可维护性与可扩展性。
+
+那我们可以再创建一个新的项目，先借助 Designer 实际看一看效果。
+
+在这里需要说明的是，尽管各个控件本身都支持单独设置样式表，但**从整体可维护性和管理成本的角度考虑，更推荐仅对 `QWidget` 本身设置样式表**。我们之前已经提到过，QSS 的实际生效范围主要取决于两个因素：一是**样式表是设置在哪个对象上的**，二是**QSS 中选择器的具体写法**。
+
+在当前这种做法下，我们只对 `QWidget` 设置样式表，相当于**先固定了“样式注入点”这一变量**。这样一来，后续在分析或调整样式时，就只需要关注选择器本身的作用范围和匹配规则即可，而无需再同时考虑样式是从哪个控件层级注入的。
+
+至于选择器的具体用法以及它们在控件层级中的匹配关系，我们在后面会马上展开说明。
+
+![image-20251215145213254](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215145213254.png)
+
+![image-20251215145343005](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215145343005.png)
+
+![image-20251215145401664](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215145401664.png)
+
+点击应用, 就能看到渲染效果了. `.ui`的纯文本上也能看到对应的痕迹.
+
+![image-20251215150406729](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215150406729.png)
+
+假设, 我们已经用 designer 试出了一个完整的 QSS 设置, 我们就可以改 QSS 设置参数写到文件上, 然后运行时, 把这个 QSS 设置为全局 QSS, 由于运行时设置, 比 designer 的 `.ui` 文件更贴近实际, 因此, 如果二者冲突, 运行时会覆写 `.ui`
+
+同样的, 我们先在项目下创建一个`style.qss`, 不过需要注意的是, 不能用`qrc`, 我们之前也说过, `qrc`相当于硬编码, 应该只能放静态文件, 不过实际上, 前面我们也说了, 那些不能改动的 UI 主体 QSS , 你可以加进 `qrc`, 而把那些可能微调的 QSS 放到另一个不加入 `qrc`体系中, 不过, 为了方便起见, 我下面的示例就用一个文件, 用真实相对路径, 使用 `cmake`复制拷贝, 确保相对路径不变.
+
+![image-20251215151734739](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215151734739.png)
+
+当然, 如果你用的是 creator, 那就不要像我这样分的这么细, 再建一个子文件夹, 直接把文件创建到源码目录上就行了, 另外, 纯文本这种表示方法其实并不好改, 你可以换成 `json`那样改起来不就很方便了吗.
+
+不要忘了, 要把 `cmake` 改一改, 让文件从源码树拷贝到构建树, `qmake`语法我没学过, 我就不说了.
+
+![image-20251215152705276](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215152705276.png)
+
+添加自定义命令: 构建完成后, 把 `STYLE_DIR`之下的所有文件拷贝到构建树的 `style` 子文件下, 其中的`cmake`语法我就不讲了.
+
+至于代码, 我们还是依据同一个被设置对象的原则, 对`this`进行设置, 其实`ui->setupUi(this)`中就会依据`.ui`文件中的QSS 对 `this setStyleSheet`, 然后`set`之前我们也说过, 它是覆写式的接口, 后执行的会覆写先执行的
+
+![image-20251215163837033](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215163837033.png)
+
+注意这里需要先对QSS清空一下, 相当于强制刷新, 否则之后的`setStyleSheet`可能不会生效
+
+![image-20251215164229846](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215164229846.png)
+
+![image-20251215164256351](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215164256351.png)
+
+----
+
+下面我们说一下选择器, QSS 支持的选择器有以下几种:
+
+| 选择器类型                  | 示例                                | 说明                                                         |
+| --------------------------- | ----------------------------------- | ------------------------------------------------------------ |
+| 全局选择器                  | `*`                                 | 选择所有的 widget。                                          |
+| 类型选择器（type selector） | `QPushButton`                       | 选择所有的 `QPushButton` 及其子类控件。                      |
+| 类选择器（class selector）  | `.QPushButton`                      | 仅选择 `QPushButton` 本身，不包含其子类。                    |
+| ID 选择器                   | `#pushButton_2`                     | 选择 `objectName` 为 `pushButton_2` 的控件。                 |
+| 后代选择器                  | `QDialog QPushButton`               | 选择 `QDialog` 的所有后代（子控件、孙控件等）中的 `QPushButton`。 |
+| 子选择器                    | `QDialog > QPushButton`             | 仅选择 `QDialog` 的直接子控件中的 `QPushButton`。            |
+| 并集选择器                  | `QPushButton, QLineEdit, QComboBox` | 同时选择 `QPushButton`、`QLineEdit`、`QComboBox` 三种控件（后续样式对三者均生效）。 |
+| 属性选择器                  | `QPushButton[flat="false"]`         | 选择所有 `flat` 属性为 `false` 的 `QPushButton`。            |
+
+主要使用的是类型选择器, 可以选中指定的类及其子类, ID 选择器, 直接选中某一个特定的控件, 并集选择器, 那就是选中多个类型的控件.
+
+下面, 我们依据代码, 来查看具体的实际内容
+
+最开始, 我们仍旧是只放一个按钮
+
+![image-20251216223206723](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216223206723.png)
+
+![image-20251216223443284](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216223443284.png)
+
+此处的 `QPushButton`就是所谓的类型选择器, 如果我们这里再写一个自己的`pushButton`, 继承`QPushButton`. 那`pushButton`的颜色仍旧是红色, 不过这里我就不直接去试了, 这样, 我们把选择器改成`QWidget`, `QPushButton`也是继承`QWidget`, 看看他会不会像预期的那样, 也是红色.
+
+![image-20251216223828907](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216223828907.png)
+
+如果我们在前面再加个点, 那就是类选择器, 不会对子类生效
+
+![image-20251216224049792](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216224049792.png)
+
+不过, 不管是类型选择器还是类选择器, 对于直接指定的那个类来说, 它们都是被选中的
+
+![image-20251216224657810](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216224657810.png)
+
+不过呢, 在实际的开发过程中, 即使是同一类型的控件, 也可能由于功能上的不同, 有着不同的样式, 此时我们就要在类或者类型选择器的基础上再加上ID选择器, 对某个特定 ID 的控件进行再覆盖. 
+
+![image-20251216225453538](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216225453538.png)
+
+不过如果样式不冲突的话, 就是层叠的效果
+
+![image-20251216225918162](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216225918162.png)
+
+最后, 我们再测测并集选择器, 我们随便加几个控件
+
+![image-20251216230405835](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216230405835.png)
+
+![image-20251216230759233](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216230759233.png)
+
+另外, 这个并集你用 id 也是可以的
+
+![image-20251216230905129](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216230905129.png)
 
 # 完
 
