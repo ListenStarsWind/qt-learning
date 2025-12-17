@@ -6734,6 +6734,8 @@ Creator 那边也有可能出现和我类似的问题: 找不到头文件, 这�
 
 ### QSS
 
+#### 基本用法
+
 在之前, 我们已经介绍过 QSS, 但只是简略一谈, 下面我们就学习有关 QSS 的详细设置.
 
 在之前我们已经提到过，**C++ 代码层面的样式控制（即 `QStyle`）与 QSS 的样式控制，本质上是两条完全不同的路线**，它们并不是为了相互配合而设计的，因此在实际使用中也很难进行真正意义上的融合。
@@ -6824,7 +6826,7 @@ QPushButton {color: red;}
 
 ![image-20251214222650950](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251214222650950.png)
 
-----
+#### 工程用法
 
 在上述代码中，我们对 QSS 的设置主要是通过 `setStyleSheet` 并直接硬编码参数来完成的。这种方式在实际工程中存在两个明显的问题：一方面，`setStyleSheet` 分散在代码的各个位置，不利于样式的统一管理；另一方面，样式参数是写死在代码中的，一旦需要调整，不仅修改成本高，也不利于后期维护和迭代。
 
@@ -6876,7 +6878,7 @@ QPushButton {color: red;}
 
 ![image-20251215164256351](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251215164256351.png)
 
-----
+#### 选择器
 
 下面我们说一下选择器, QSS 支持的选择器有以下几种:
 
@@ -6930,6 +6932,126 @@ QPushButton {color: red;}
 另外, 这个并集你用 id 也是可以的
 
 ![image-20251216230905129](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251216230905129.png)
+
+--------------
+
+对于构成更为复杂的控件来说, 如果我们想对其中的小控件进行样式设置, 就需要使用`::`取出多元素控件中的子控件
+
+比如, 对于微调框`QSpinBox`来说, 它左边是输入框, 右边是两个小按钮.
+
+![image-20251217140825965](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217140825965.png)
+
+还有下拉框, `QComboBox`, 左边是输入框, 右边是下拉按钮, 下面还有一个下拉菜单.
+
+![image-20251217141119365](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217141119365.png)
+
+对于哪些控件里有小控件, 这些小控件又具体有那些属性需要设置, 就需要翻阅文档进行查询
+
+![image-20251217151349329](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217151349329.png)
+
+下面, 我们就新建一个项目, 在其中添加一个`QComboBox`, 并修改下拉按钮图标
+
+![image-20251217152206578](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217152206578.png)
+
+运行
+
+![image-20251217152321898](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217152321898.png)
+
+那下面, 我们就通过子控件选择器修改一下下拉按钮的样式, 这里我们还是从阿里巴巴矢量图哪里找一个表示下拉的图标
+
+把下载下来的图标放到 `qrc` 里面
+
+![image-20251217152645708](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217152645708.png)
+
+重构, 运行
+
+![image-20251217153128780](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217153128780.png)
+
+-----
+
+下面介绍所谓的"伪选择器", 伪选择器能够对特定状态下的控件进行设置, 比如, 一个按钮, 鼠标进入, 字体颜色发生变化这种, 当然, 我们也可以用事件来实现它, 但相比于通过事件, "伪选择器"明显用起来更加方便一些.
+
+常用的伪选择器如下:
+
+| 选择器       | 说明                                                         |
+| ------------ | ------------------------------------------------------------ |
+| `:hover`     | 鼠标指针悬停在控件上时触发                                   |
+| `:pressed`   | 鼠标左键在控件上按下（未松开）时触发                         |
+| `:focus`     | 控件获得输入焦点时触发                                       |
+| `:enabled`   | 控件处于可用（未被禁用）状态时触发                           |
+| `:checked`   | 控件处于“被选中 / 勾选”状态时触发（如 `QCheckBox`、`QRadioButton`） |
+| `:read-only` | 控件处于只读状态时触发（如 `QLineEdit`、`QTextEdit`）        |
+
+伪选择器其实还是蛮常用的: 为了有更好的交互效果, 我们往往需要对用户触发的各种行为进行反馈, 比如鼠标移到这里高亮什么的, 但如果这些东西用事件来写就有些太麻烦了.
+
+这里注意, 上述的状态还可以用`!`取反: 表示除了它以外的状态.
+
+![image-20251217154859379](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217154859379.png)
+
+我们还是创建一个新的项目, 最开始, 还是在 `ui`界面上新加一个按钮
+
+![image-20251217155727334](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217155727334.png)
+
+此时, 按钮在一般状态下时字体是红色, 鼠标进入是绿色, 仅按下不松开就是蓝色. 如果我们用事件, 那就需要在写一个`pushButton`, 然后重写对应的事件方法, 这很明显, 麻烦很多.
+
+#### 盒子模型
+
+关于QSS 的样式设置, 我们还需要了解一个基本的知识点, 那就是盒子模型.
+
+访问 qt 的[在线文档](https://doc.qt.io/qt-6.8/)
+
+![image-20251217160707337](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217160707337.png)
+
+搜索`style sheets reference`
+
+![image-20251217160835710](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217160835710.png)
+
+这两个就是我们刚刚看的文档
+
+![image-20251217161001849](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217161001849.png)
+
+另外我们也看到, 这里时不时跳出一个词`box model`. 官方也有对其的专门描述
+
+![image-20251217161129581](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217161129581.png)
+
+![Diagram of the CSS box model for layout design](https://doc.qt.io/qt-6/images/stylesheet-boxmodel.png)
+
+`QSS`的盒子模型其实和`CSS`是一样的, 当然, 我们也没有学过`CSS`, 所以我们继续说.
+
+盒子模型 Qt 中的控件分为四个部分, `content`是内容, `padding`是内边距, `border`是边框, `margin`是外边距. 打个比方的话, 一个房子, 它的围墙就是边框, 其中的家具就是内容, 内容和边框会有一定的距离, 比如冰箱为了散热, 不会贴着墙放, 而是留着一定的距离, 这个距离, 即 内容和边框的距离就是内边距, 另外, 房子是一栋栋的, 一个房子和另一个房子的距离那就是外边距.
+
+| QSS 属性     | 说明                                                         |
+| ------------ | ------------------------------------------------------------ |
+| margin       | 设置四个方向的外边距。复合属性。                             |
+| padding      | 设置四个方向的内边距。复合属性。                             |
+| border-style | 设置边框样式。                                               |
+| border-width | 设置边框的粗细。                                             |
+| border-color | 设置边框的颜色。                                             |
+| border       | 复合属性，相当于 border-style + border-width + border-color。 |
+
+这里有复合属性这个词, 复合属性顾名思义, 就是多个属性复合在一起, 比如, `margin`, 它有上下左右这四个方向, 这不就是四个属性复合在一起了吗? 在实际写代码的时候, 你可以按照`margin-left, margin-right, margin-top, margin-button`, 各个方向设置, 也可以用`margin`统一设置, 如果对于`margin`只使用了一个值, 比如`margin: 10px;` 那就是四个方向都是`10px`的外边框, 如果有两个值, 则表示上下, 左右的外边距, `margin: 10px 20px;`就表示上下方向外边距是`10px`, 左右方向外边距是`20px`, 如果写成四个值, 则是按照上右下左的顺时针方向进行设置. `margin: 10px 20px 30px 40px`
+
+`border`也可以拆, 并且由于这边框样式(比如是否虚实), 边框粗细, 边框颜色完全是不同的属性, 所以拆开写是没有顺序要求的, 
+
+接下来我们还是新建一个项目:
+
+![image-20251217165452601](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217165452601.png)
+
+![image-20251217165504456](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217165504456.png)
+
+运行
+
+![image-20251217165532935](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217165532935.png)
+
+![image-20251217165731560](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217165731560.png)
+
+前面, 我们看了内边距的效果, 接下来我们看看外边距, 为了让效果更加明显, 在新的项目中, 我们会手动创建按钮
+
+![image-20251217171037999](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217171037999.png)
+
+![image-20251217171233734](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251217171233734.png)
+
+我们需要注意的一点是, 尽管外边框距是空白的, 肉眼看不到, 但我们要知道, 外边框距是被算作`button`的一部分的, 因此我们看到这里按钮看似变小了, 往右下角稍微移动了一些, 但实际上是, 外边框距也是`button`的一部分, 而外边距由原先的零变成现在的`20px`, 但控件总的几何大小没有变化, 因此边框加内容就变小了, `button` 的坐标原点位于外边框距的最左上角, 所以看起来又像是移动了一些.
 
 # 完
 
