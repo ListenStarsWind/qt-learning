@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <!-- 资源文件说明见 res/resource_guide.txt -->
+    <qresource prefix="/">
+        <file>resource_guide.txt</file>
+        <file>auto-check.png</file>
+        <file>auto-uncheck.png</file>
+        <file>hover-check.png</file>
+        <file>hover-uncheck.png</file>
+        <file>pressed-check.png</file>
+        <file>pressed-uncheck.png</file>
+    </qresource>
+</RCC>

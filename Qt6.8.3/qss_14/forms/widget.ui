@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>812</width>
+    <height>594</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Widget</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QFrame {
+	border-image: url(:/Furina.png); /*照片大小会随控件大小自动变化*/
+}
+
+/* =========================
+ * 输入框：QLineEdit 基础状态
+ * ========================= */
+QLineEdit {
+    font-size: 26px;                  /* 输入文字字号：偏大，适合登录界面、主输入框 */
+    color: rgb(235, 245, 255);         /* 输入文字颜色：偏冷的浅蓝白，与深色背景对比清晰 */
+    background-color: rgba(30, 60, 90, 140);
+                                       /* 半透明深蓝背景：
+                                        * 1. 与整体深色/科技感背景融合
+                                        * 2. 允许背景图轻微透出，不显突兀 */
+    border: 1px solid rgba(180, 220, 255, 120);
+                                       /* 细边框 + 半透明浅蓝：
+                                        * 提供轮廓感，但不抢眼 */
+    border-radius: 10px;               /* 圆角矩形，偏现代 UI */
+    padding: 8px 14px;                 /* 内边距：
+                                        * 上下较紧，左右更宽，利于输入视觉平衡 */
+}
+
+/* =========================
+ * 输入框：获取焦点状态
+ * ========================= */
+QLineEdit:focus {
+    background-color: rgba(40, 80, 120, 180);
+                                       /* 聚焦时背景加深：
+                                        * 强调“当前输入目标” */
+    border: 2px solid rgb(120, 200, 255);
+                                       /* 聚焦描边加粗 + 高亮蓝：
+                                        * 明确焦点状态，提升可用性 */
+    color: rgb(255, 255, 255);         /* 聚焦时文字纯白：
+                                        * 提升对比度和可读性 */
+}
+
+/* =========================
+ * 输入框：占位符文本
+ * ========================= */
+QLineEdit::placeholder {
+    color: rgba(200, 220, 240, 120);   /* 占位符浅色半透明：
+                                        * 明显弱于真实输入内容
+                                        * 不干扰用户输入 */
+}
+
+/* =========================
+ * 按钮：QPushButton 基础状态
+ * ========================= */
+QPushButton {
+    font-size: 26px;                  /* 与输入框字号一致，形成主操作层级 */
+    color: rgb(255, 255, 255);         /* 按钮文字纯白，清晰醒目 */
+    background-color: rgba(60, 140, 200, 200);
+                                       /* 主按钮蓝色：
+                                        * 饱和但不刺眼
+                                        * 明确“可点击主操作” */
+    border: none;                      /* 去除默认边框，保持扁平化 */
+    border-radius: 10px;               /* 与输入框保持统一圆角风格 */
+    padding: 10px 0;                   /* 垂直方向留白：
+                                        * 增强按钮点击区域
+                                        * 横向宽度通常由布局控制 */
+}
+
+/* =========================
+ * 按钮：悬停状态
+ * ========================= */
+QPushButton:hover {
+    background-color: rgba(80, 160, 220, 220);
+                                       /* 悬停变亮：
+                                        * 明确鼠标反馈
+                                        * 不改变结构，只改变亮度 */
+}
+
+/* =========================
+ * 按钮：按下状态
+ * ========================= */
+QPushButton:pressed {
+    background-color: rgba(50, 120, 180, 220);
+                                       /* 按下时颜色变暗：
+                                        * 模拟“被压下”的视觉反馈 */
+}
+
+/* =========================
+ * 复选框：QCheckBox
+ * ========================= */
+QCheckBox {
+    color: rgba(220, 235, 250, 180);   /* 文本颜色略暗于输入框：
+                                        * 体现次级信息（如“记住我”） */
+    font-size: 18px;                   /* 辅助性控件字号：
+                                        * 明显低于主输入与按钮 */
+}
+</string>
+  </property>
+  <widget class="QFrame" name="frame">
+   <property name="geometry">
+    <rect>
+     <x>-10</x>
+     <y>0</y>
+     <width>831</width>
+     <height>601</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Shape::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Shadow::Raised</enum>
+   </property>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>120</y>
+      <width>411</width>
+      <height>291</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLineEdit" name="lineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_2">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBox">
+       <property name="text">
+        <string>记住密码</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>登录</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

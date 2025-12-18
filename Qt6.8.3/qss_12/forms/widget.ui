@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Widget</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QListWidget::item {
+    padding: 6px 8px;
+    color: rgb(30, 80, 110);
+}
+
+QListWidget::item:hover {
+    background: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+        stop:0 rgb(240, 248, 253),
+        stop:1 rgb(225, 240, 250)
+    );
+    color: rgb(20, 70, 100);
+}
+
+QListWidget::item:selected {
+    background: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+        stop:0 rgb(225, 240, 250),
+        stop:1 rgb(200, 225, 245)
+    );
+    color: rgb(10, 50, 80);
+}
+
+QListWidget::item:selected:!active {
+    background: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+        stop:0 rgb(235, 245, 250),
+        stop:1 rgb(215, 235, 245)
+    );
+    color: rgb(40, 90, 120);
+}</string>
+  </property>
+  <widget class="QListWidget" name="listWidget">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>140</y>
+     <width>351</width>
+     <height>261</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>1111</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>2222</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>3333</string>
+    </property>
+   </item>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

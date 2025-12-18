@@ -7053,5 +7053,207 @@ QPushButton {color: red;}
 
 我们需要注意的一点是, 尽管外边框距是空白的, 肉眼看不到, 但我们要知道, 外边框距是被算作`button`的一部分的, 因此我们看到这里按钮看似变小了, 往右下角稍微移动了一些, 但实际上是, 外边框距也是`button`的一部分, 而外边距由原先的零变成现在的`20px`, 但控件总的几何大小没有变化, 因此边框加内容就变小了, `button` 的坐标原点位于外边框距的最左上角, 所以看起来又像是移动了一些.
 
+#### 自定义按钮
+
+下面我们就利用上述的知识, 创建一个自定义样式的按钮.
+
+![image-20251218193602917](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218193602917.png)
+
+这个颜色呢, 你当然可以手敲, 但也可以通过上面的添加颜色去设置
+
+![image-20251218193659410](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218193659410.png)
+
+点击确认, 那就直接加上了
+
+![image-20251218193721717](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218193721717.png)
+
+然后我们再为按钮设置成圆角矩形的样式
+
+![image-20251218193841591](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218193841591.png)
+
+这里的数值填的越大, 圆角就越圆.
+
+再添加一个背景色
+
+![image-20251218194156606](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194156606.png)
+
+然后应用确认
+
+![image-20251218194256246](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194256246.png)
+
+这个字体颜色不太好, 我们再改一下
+
+![image-20251218194337816](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194337816.png)
+
+我们再增加一下按下时的样式
+
+![image-20251218194636530](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194636530.png)
+
+运行
+
+![image-20251218194812400](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194812400.png)
+
+按下
+
+![image-20251218194841405](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218194841405.png)
+
+#### 自定义复选框
+
+在这里, 我们会依据用户的行为, 为复选框增加不同的样式, 这里, 我已经找到了一批图标, 你可以去阿里巴巴矢量图库里找
+
+![image-20251218202512893](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218202512893.png)
+
+六个图标, 每三个一组, 分别表示按钮默认状态, 鼠标进入状态, 按下状态, 一组表示没有选中的情况, 另一组表示选中的情况
+
+添加到 `qrc` 里面
+
+![image-20251218202739043](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218202739043.png)
+
+![image-20251218203336610](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218203336610.png)
+
+`indicator`就是复选框里的那个框子子控件
+
+接下来要做的就是把图片加进去
+
+![image-20251218205015908](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205015908.png)
+
+首先是默认的未选中状态, 这里如果你用的是 create 的那种集成式开发环境, 可以点击添加资源, 直接选择已经存到`qrc`上的图标, 这样比较方便, 不容易拼错, 那对于我这种环境, 你直接复制 `.qrc`里面的文本也是可以的. 还有, `background: transparent;`是显示禁止系统默认样式干扰, 否则可能会有奇怪的现象发生
+
+![image-20251218204208806](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218204208806.png)
+
+接下来是选中的情况
+
+![image-20251218204256576](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218204256576.png)
+
+运行
+
+![image-20251218205143213](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205143213.png)
+
+![image-20251218205227334](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205227334.png)
+
+![image-20251218205250595](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205250595.png)
+
+![image-20251218205307556](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205307556.png)
+
+![image-20251218205336627](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205336627.png)
+
+![image-20251218205406415](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218205406415.png)
+
+#### 自定义输入框
+
+![image-20251218212619958](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218212619958.png)
+
+这里的字体大小, 一般是 line edit 自身高度的 0.5~0.6, 否则太小太大都不合适.
+
+不过呢, 现在光标太靠近边框了, 所以我们再改一下内边距
+
+![image-20251218212848362](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218212848362.png)
+
+![image-20251218212809324](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218212809324.png)
+
+接下来我们设置一下字体的颜色, 选中字体颜色背景, 并且把它改成圆角
+
+![image-20251218213301993](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218213301993.png)
+
+![image-20251218213316939](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218213316939.png)
+
+![image-20251218213340440](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218213340440.png)
+
+![image-20251218213354913](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218213354913.png)
+
+#### 自定义列表框
+
+![image-20251218214322798](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218214322798.png)
+
+接下来, 我们为列表框中的项设置鼠标进入和选中效果
+
+![image-20251218215018664](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218215018664.png)
+
+效果不太行, 再设置一下字体颜色
+
+![image-20251218215311313](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218215311313.png)
+
+![image-20251218215411526](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218215411526.png)
+
+![image-20251218215446640](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218215446640.png)
+
+![image-20251218215513094](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218215513094.png)
+
+上面我们用的都是纯色, 那下面, 我们就设置一下渐变色, 在 QSS 中, 渐变色使用六个参数描述, 其中四个描述渐变的方向, 剩下两个描述起始和终止颜色.
+
+首先是那表示方向的四个参数, 它们比较特别, 只有 0 和 1 这两个值, 它们四个就构成了两组坐标, 描述起始和终止位置, 那么, `x1: 0; y1: 0; x2: 1, y2: 0`, 它描述的方向就是从左往右的渐变, 因为只有横坐标是发生变化的, `x1: 0; y1: 0; x2: 0; y2: 1`, 这个就是从上往下的渐变; `x1: 0; y1: 0; x2: 1; y2: 1`这个就是从左上角到右下角的渐变.
+
+剩下的两个参数就没什么好说的了, 就是颜色码
+
+![image-20251218220542517](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218220542517.png)
+
+默认情况下我们不渐变, 鼠标进入稍微渐变, 选中渐变地更厉害一些, 最后一个是选中但是失去焦点的样式
+
+![image-20251218220706494](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218220706494.png)
+
+![image-20251218220815467](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218220815467.png)
+
+![image-20251218220828067](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218220828067.png)
+
+![image-20251218220933613](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218220933613.png)
+
+渐变的效果需要较为克制, 否则控制不好容易感觉很low, 我这配色是找 ai 配的
+
+#### 自定义菜单栏
+
+这里我们加个分隔符
+
+![image-20251218222010168](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218222010168.png)
+
+![image-20251218222037179](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218222037179.png)
+
+![image-20251218223059880](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218223059880.png)
+
+![image-20251218223258243](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218223258243.png)
+
+![image-20251218223310926](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218223310926.png)
+
+![image-20251218223350605](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218223350605.png)
+
+![image-20251218223432977](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218223432977.png)
+
+#### 自定义登录界面
+
+下面我们写一个极简登录界面
+
+垂直布局统一管理
+
+![image-20251218225341204](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218225341204.png)
+
+不过现在有点太小了
+
+![image-20251218225437326](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218225437326.png)
+
+我们可以设置一下最小高度
+
+![image-20251218225545131](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218225545131.png)
+
+![image-20251218225619457](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218225619457.png)
+
+接下来我们加个背景, 需要注意的是, 主窗口`QWidget`是不允许设置背景照片的, 所以我们需要往上加一个`QFrame`控件, 并把这个控件的背景照片进行设置
+
+![image-20251218231504272](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218231504272.png)
+
+我也没学过美工, 那这里还是按照 ai 给的参数进行设置
+
+![image-20251218232704330](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218232704330.png)
+
+![image-20251218232718941](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218232718941.png)
+
+![image-20251218232752679](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218232752679.png)
+
+最后我们看看实际效果
+
+![image-20251218232838235](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251218232838235.png)
+
+感觉还可以
+
+总的来说, 我们程序员对于 QSS 的样式考虑想的还是比较少的, 美工部门的同事考虑的就很多了.
+
 # 完
 
