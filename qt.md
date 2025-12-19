@@ -7255,5 +7255,190 @@ QPushButton {color: red;}
 
 总的来说, 我们程序员对于 QSS 的样式考虑想的还是比较少的, 美工部门的同事考虑的就很多了.
 
+### 绘图
+
+前面我们学习的控件就已经足以应对绝大多数的场景, 但是, 可能总有那么一两个场景, 在 Qt 中找不到令人满意的控件, 那此时我们就需要把控件自己画出来, 就像 Qt 自带的那些控件一样--它们也是由 Qt 官方画出来的.
+
+
+
+| 类名           | 说明                                                         |
+| -------------- | ------------------------------------------------------------ |
+| `QPainter`     | “绘画者”或“画家”。<br>用于实际执行绘图操作的对象，提供了一系列 `drawXXX` 方法，可绘制直线、矩形、圆形、文本、图像等各种图形。 |
+| `QPaintDevice` | “画板”。<br>描述 `QPainter` 将图形绘制到哪个对象上。`QWidget`、`QPixmap`、`QImage` 等都属于 `QPaintDevice`，其中 `QWidget` 是其子类。 |
+| `QPen`         | “画笔”。<br>描述 `QPainter` 绘制轮廓线时的样式，如颜色、线宽、线型（实线、虚线等）、端点和连接方式。 |
+| `QBrush`       | “画刷”。<br>描述 `QPainter` 填充封闭区域时的样式，如纯色、渐变、纹理或图片填充方式。 |
+
+上面是与绘图相关的核心类.
+
+`QPainter`是绘图的主体对象, 其中提供了一系列的绘图方法, 用来画一条线, 一个矩形, 一些文字之类, `QPainDevice`则是画布, 描述了在哪里绘画, 其实, `QWidget`就是`QPainDevice`的一个子类, `QPen`是画笔, 控制着绘画线条的各类参数, `QBrush`是用来进行颜色填充的, 就像是 windows 画图里的填充
+
+![image-20251219185831566](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219185831566.png)
+
+另外一个注意点是, 对于绘画的操作, 不能放在 `Widget`的构造函数中执行, 而必须要放在其对应的`paintEvent`函数中, 这是因为, 不止构造这一个场景, 还有许多场景下也需要进行画面的重新绘制, 因此绘画操作在整体上被设计成了事件的形式, 当出现那些需要重绘的事件后, 绘图事件函数就会被触发, 从而重新绘制 UI.
+
+比如说, 控件首次创建出来放的时候, 显而易见这个是肯定需要绘制的; 控件被遮挡, 再解除遮挡也需要重绘. 比如说, 此处, 
+
+![image-20251219190702318](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219190702318.png)
+
+哔哩哔哩就遮挡了后面的画图, 而我重新把焦点移到画图时, 他就需要重新绘制, 还原出画图失焦时的样子.
+
+窗口最小化再还原, 这个相信也显而易见.
+
+控件大小发生改变时, 我们也需要按照新的窗口尺寸, 重绘 UI 界面
+
+有时, 也需要在代码上调用`repaint`或者`updata`, 刷新界面.
+
+所以, 绘画操作不能仅放在构造函数里, 而是要写到对应的事件处理函数中.
+
+#### 绘制各种形状
+
+首先我们来画个线段.
+
+![image-20251219192148724](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219192148724.png)
+
+我们这里能看到, 对于线段, 有多个重载版本可以去调用
+
+![image-20251219194003429](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219194003429.png)
+
+![image-20251219194022855](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219194022855.png)
+
+这里我们就用最直白的, 第三个版本, 直接输入起点和终点的坐标.
+
+![image-20251219194226321](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219194226321.png)
+
+或者, 再画一个竖线
+
+![image-20251219194503757](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219194503757.png)
+
+斜线就不画了.
+
+----
+
+接下来我们画一个矩形
+
+![image-20251219194645756](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219194645756.png)
+
+在几何属性那里, 我们说过矩形是什么, 比如第二个版本, 前两个是矩形的左上角坐标, 后两个是宽和高
+
+![image-20251219195129974](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219195129974.png)
+
+---
+
+接下来画圆
+
+![image-20251219195326433](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219195326433.png)
+
+对于画圆来说, Qt 的思路是让用户也就是我们描述与圆外接的那个矩形, 这样就可以顺手控制圆的偏心率--只要外切矩形是正方形, 那就是正圆.
+
+![image-20251219195702521](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219195702521.png)
+
+这样就更扁一些
+
+![image-20251219195837992](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219195837992.png)
+
+#### 绘制文字
+
+既然 Qt 自带控件里有文字, 那么这文字自然也是画出来的
+
+![image-20251219200152568](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219200152568.png)
+
+对于文字绘制, 有两种模式, 第一个和第三个是基线模式, 中间的是矩形模式.
+
+对于使用象形字的我们来说, 可能对基线没什么印象, 基线其实就是那个四线格从上往下的第三条线
+
+![image-20251219200757044](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219200757044.png)
+
+第一个版本, 前一个参数所描述的点是基线的起始点, 即起始字符与基线的交点, 第三个版本, 就是把基线起始点拆开了, 中间那个, 是描述一个矩形区域, 在这个区域里面绘制文字, `flags`是"对齐 / 换行 / 行为控制"标志位, `br`是可选参数, 如果使用, 表示刚好把文字全部框起来的最小矩形的几何属性.
+
+如果文本比较多的话, 你应该使用中间版本, 并使用 `flags`, 对绘制行为进行具体控制, 如果就几个字, 那当然谁方便就用谁.
+
+![image-20251219201718094](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219201718094.png)
+
+这些字母都在基线上, 所以我们看不到文字
+
+![image-20251219201920127](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219201920127.png)
+
+另外, 我们还可以为文字设置字体
+
+![image-20251219202139329](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219202139329.png)
+
+#### 其它属性
+
+下面我们设置一下画笔
+
+之前我们说, 画笔有线宽, 颜色, 样式等属性, 前两个好理解, 主要注意一下样式, 官方文档是这样说的
+
+![image-20251219202837627](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219202837627.png)
+
+![image-20251219203437011](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219203437011.png)
+
+---
+
+我们再看看画刷
+
+画刷用于填充封闭图形的内部, 具有样式, 颜色, 渐变, 纹理等属性
+
+![image-20251219203924567](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219203924567.png)
+
+![image-20251219204357321](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219204357321.png)
+
+#### 绘制图片
+
+在 Qt 中, 与图片及其绘制的类有四个, `QImage, QPixmap, QBitmap, QPictur`, 其中`QImage`主要用于 IO 处理, 也就是读图片, 存储图片, 发到网络里, 而且支持对图片进行像素级别修改, 对于`QPainter`也是有对应的`draw`接口的, `QPixmap`则是主要的用来进行图片绘制的类, 有对应的`draw`接口, 对于`QBitmap`没有对应的`draw`接口, 这是因为`QBitmap`是`QPixmap`子类, 和它的父类相比, `QBitmap`一个显著的区别就是, 它的颜色是灰白的, `QPictur`是命令快照, 到时候再具体细说.
+
+![image-20251219213158323](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219213158323.png)
+
+当前重载的版本指示了图片左上角放在哪里, 不过看起来似乎不太好, 所以我们再用另一个版本, 让图片出现在指定的矩形内
+
+![image-20251219213339606](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219213339606.png)
+
+当然他还有一些其他的版本, 比如手动指定缩放尺寸什么的, 这里就不多说了
+
+![image-20251219213700779](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219213700779.png)
+
+除此之外, 我们还可以对坐标系进行旋转, 
+
+![image-20251219214659116](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219214659116.png)
+
+在此处我们看到, 什么都没有, 这是因为坐标系发生了旋转, 本来它是这样的
+
+![image-20251219214908119](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219214908119.png)
+
+现在变成了这样
+
+![image-20251219215036974](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219215036974.png)
+
+也就是说, 现在照片全在当前窗口的左上角, 因此完全看不见
+
+如果我们想要看到的话, 就必须改一下照片左上角位置
+
+![image-20251219215402977](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219215402977.png)
+
+或者更暴力的做法是, 直接把坐标系原点移过来
+
+![image-20251219215622214](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219215622214.png)
+
+---
+
+接下来是杂谈
+
+说一下剩下的三个图片类
+
+![image-20251219215948183](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219215948183.png)
+
+`QImage`可以像修改二维数组那样, 直接修改其中的像素, `QBitmap`颜色深度为1, 简单的说, 就是黑白照. `QPicture`是个命令快照: 简单地说, 它可以对某段绘画的代码进行保存, 生成一个特定的文件, 将来我们就可以直接把该文件交给`QPainter`, 让它重新复现之前的绘画过程.
+
+又或者, 我们可以举一个例子, 这个例子是我从别处听来的, 说是有个游戏叫做"魔兽争霸3", 里面有一个"回看录像"的功能, 这个"回看录像"并不是一帧一帧地把图像录下来, 而是先记录玩家的初始状态, 然后在再记录录制过程中的玩家操作, 然后回看的时候, 再依据玩家操作, 把场景再复现一遍
+
+这里有一份实例代码
+
+![image-20251219221256598](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219221256598.png)
+
+另外, `QPainter`还有`save, restore `这两个成员, 可以保存画家状态, 并之后重置回来
+
+![image-20251219221443324](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219221443324.png)
+
+好了, 当然还有很多其他内容, 但我们就不说了, 有实际需求可以问 AI, 从 AI 那里获取大致方向, 然后去查官方文档, 不建议完全听 AI 的, 万一它讲错了呢.
+
 # 完
 
