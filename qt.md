@@ -88,6 +88,8 @@ Qt 目前已经推出了第六代版本，也就是 **Qt 6**。不过整体来�
 
 ## 环境搭建与测试
 
+注: 去看一下后记.
+
 对于Qt的开发环境, 我们理论上需要安装三个部分
 
 - C++编译器(gcc, cl.ext, 注意不是VS这种IDE)
@@ -7439,6 +7441,248 @@ QPushButton {color: red;}
 ![image-20251219221443324](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251219221443324.png)
 
 好了, 当然还有很多其他内容, 但我们就不说了, 有实际需求可以问 AI, 从 AI 那里获取大致方向, 然后去查官方文档, 不建议完全听 AI 的, 万一它讲错了呢.
+
+# 后记
+
+在上面你或许注意到, 我的 Qt 开发方式是有变化的, 从一开始使用集成式开发环境 create, 到中期使用从官方渠道下载的 Qt SDK, 配合 `Qt-VSCode` 插件, 到最后, 不使用任何 Qt-Code 插件, 前端 vs-code, 后端本地编译的 Qt6.8.3 SDK.
+
+那在这里就让我介绍一下我最后使用的这套本地编译的工具链.
+
+首先, 我已经在我的 `confing`库里存储了它的压缩包, 已经配套的模版项目
+
+![image-20251220145318170](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220145318170.png)
+
+![image-20251220145347259](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220145347259.png)
+
+你最好能科学上网, 实在不行, 这里也有腾讯微云的[下载源](https://share.weiyun.com/D5n2wZNA), 把这个压缩包解压到当前文件夹, 你就会得到这样的文件层次
+
+![image-20251220145429744](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220145429744.png)
+
+在这个工具链中, 有 `mingw-gun`, `mingw-llvm`, `gun-boost`, `gun-qt`, 它们的路径会以相对路径的形式在`env`子文件下的脚本里记录
+
+![image-20251220145704053](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220145704053.png)
+
+这两个脚本, 一个是用来初始化 vs-code 的 终端的, 其中将会把某些必要的路径加到环境变量中, 另一个则是用来加到`CMakeLists.txt`中, 用来引入`cmake`配置的.
+
+为了使用这套工具, 你首先需要在 code 的 `settings.json` 中写入如下的设置, 用来引导 `code `注入工具链环境, 我不喜欢改动系统环境变量, 所以我只打算把环境变量的修改控制在 `powershell` , 这个终端会话的层面上
+
+![image-20251220150234236](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220150234236.png)
+
+这里就用到了之前我们准备的脚本, 这是本套工具链维尔使用的绝对路径
+
+```json
+// ---------------------------------------------------------------
+    // 对于 vs code 的终端注入便携工具中的环境
+    // ---------------------------------------------------------------
+    "terminal.integrated.defaultProfile.windows": "Toolchain PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "Toolchain PowerShell": {
+            "path": "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+            "args": [
+                "-NoLogo",
+                "-NoExit",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                ". 'E:/test/toolchains/env/env.ps1'" // 如果不出意外, 你只要改动此处的脚本绝对路径
+            ]
+        }
+    },
+```
+
+设置完成后, 重启 vs-code, 再开一个终端, 顺利的话, 会显示这样的一段说明
+
+![image-20251220150604365](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220150604365.png)
+
+这就说明环境注入成功了
+
+![image-20251220150741399](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220150741399.png)
+
+第二处需要修改的, 就是这里的绝对路径.
+
+接下来是项目的构建实例
+
+```shell
+PS D:\Repository\Config\qtwidgetsapplication> cd .\build\
+PS D:\Repository\Config\qtwidgetsapplication\build> cmake .. -G Ninja
+-- The CXX compiler identification is GNU 15.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: E:/test/toolchains/mingw64/bin/g++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- 使用编译器: E:/test/toolchains/mingw64/bin/g++.exe
+-- 编译器类型: GNU (GNU)
+-- [Qt] 启用模块: Core
+-- [Qt] 启用模块: Gui
+-- [Qt] 启用模块: Widgets
+-- [Qt] 关闭模块: Network
+-- [Qt] 关闭模块: Sql
+-- [Qt] 关闭模块: OpenGL
+-- [Qt] 关闭模块: PrintSupport
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+--   [Boost] include dir = E:/test/toolchains/boost/include
+--   [Boost] library dir = E:/test/toolchains/boost/lib
+-- [Boost] 关闭组件: filesystem
+-- [Boost] 关闭组件: thread
+-- [Boost] 关闭组件: log
+-- [Boost] 关闭组件: log_setup
+-- [Boost] 关闭组件: program_options
+-- [Boost] 关闭组件: json
+-- [Boost] 关闭组件: regex
+-- [Boost] 关闭组件: iostreams
+-- [Boost] 关闭组件: serialization
+-- [Boost] 关闭组件: atomic
+-- ============================================================
+--                 QtWidgetsApp 构建与部署摘要
+-- ------------------------------------------------------------
+-- [Build]
+-- 目标名称:        QtWidgetsApp
+-- 构建类型:        Debug
+-- 生成器:          Ninja
+-- C++ 标准:        C++20
+-- ------------------------------------------------------------
+-- [Compiler]
+-- 编译器路径:      E:/test/toolchains/mingw64/bin/g++.exe
+-- 编译器 ID:       GNU
+-- ------------------------------------------------------------
+-- [Qt]
+-- Qt 根目录:       E:/test/toolchains/qt
+-- 启用模块:        Core;Gui;Widgets
+-- 链接目标:        Qt6::Core;Qt6::Gui;Qt6::Widgets
+-- 运行期部署:      windeployqt (按实际依赖动态解析)
+-- ------------------------------------------------------------
+-- [Boost]
+-- 状态:            未启用任何 Boost 组件
+-- ------------------------------------------------------------
+-- [Runtime Libraries]
+-- libstdc++:        libstdc++-6.dll
+-- libgcc:           libgcc_s_seh-1.dll
+-- pthread:          libwinpthread-1.dll
+-- ------------------------------------------------------------
+-- [Runtime Strategy]
+-- Qt 运行期:       windeployqt 自动解析并部署
+-- 非 Qt 运行期:    基于 IMPORTED target / 依赖扫描精确拷贝
+-- 运行目录:        exe 目录即完整运行环境
+-- PATH 依赖:       不依赖外部 PATH, 可直接双击运行
+-- ============================================================
+-- Configuring done (7.0s)
+-- Generating done (2.1s)
+-- Build files have been written to: D:/Repository/Config/qtwidgetsapplication/build
+PS D:\Repository\Config\qtwidgetsapplication\build> cmake --build .
+[7/7] Linking CXX executable QtWidgetsApp.exe
+D:\Repository\Config\qtwidgetsapplication\build\QtWidgetsApp.exe 64 bit, release executable
+Adding in plugin type generic for module: Qt6Gui
+Adding Qt6Network for qtuiotouchplugin.dll from plugin type: generic
+Adding in plugin type iconengines for module: Qt6Gui
+Adding Qt6Svg for qsvgicon.dll from plugin type: iconengines
+Adding in plugin type imageformats for module: Qt6Gui
+Adding in plugin type networkinformation for module: Qt6Network
+Adding in plugin type platforminputcontexts for module: Qt6Gui
+Skipping plugin qtvirtualkeyboardplugin.dll due to disabled dependencies (Qt6Qml Qt6Quick).
+Adding in plugin type platforms for module: Qt6Gui
+Adding in plugin type styles for module: Qt6Widgets
+Adding in plugin type tls for module: Qt6Network
+Direct dependencies: Qt6Core Qt6Gui Qt6Widgets
+All dependencies   : Qt6Core Qt6Gui Qt6Widgets
+To be deployed     : Qt6Core Qt6Gui Qt6Network Qt6Svg Qt6Widgets
+Warning: Cannot find any version of the dxcompiler.dll and dxil.dll.
+Warning: Runtime libraries not found in Qt binary folder, defaulting to looking in path
+Updating Qt6Core.dll.
+Updating Qt6Gui.dll.
+Updating Qt6Network.dll.
+Updating Qt6Svg.dll.
+Updating Qt6Widgets.dll.
+Updating libgcc_s_seh-1.dll.
+Updating libstdc++-6.dll.
+Updating libwinpthread-1.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/generic.
+Updating qtuiotouchplugin.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/iconengines.
+Updating qsvgicon.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/imageformats.
+Updating qgif.dll.
+Updating qicns.dll.
+Updating qico.dll.
+Updating qjpeg.dll.
+Updating qsvg.dll.
+Updating qtga.dll.
+Updating qtiff.dll.
+Updating qwbmp.dll.
+Updating qwebp.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/networkinformation.
+Updating qnetworklistmanager.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/platforms.
+Updating qwindows.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/styles.
+Updating qmodernwindowsstyle.dll.
+Creating directory D:/Repository/Config/qtwidgetsapplication/build/tls.
+Updating qcertonlybackend.dll.
+Updating qschannelbackend.dll.
+== Deploy runtime deps (non-Qt) for: QtWidgetsApp ==
+PS D:\Repository\Config\qtwidgetsapplication\build> 
+```
+
+如果在中途中需要使用 designer, 不能去文件管理器里双击, 因为这套工具链没有注入到系统当中, 所以大概率找不到共享库, 如果你要启动, 就必须在 code 终端中命令行启动, code 终端的环境变量都是配置好的, 能够找到共享库的位置, 注意修改完`ui`文件后一定要记得保存
+
+![image-20251220151152025](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220151152025.png)
+
+不过, 最终 build 目录下的程序可以在文件资源管理器里直接双击启动, 这是因为, 在构建过程中, 会把依赖的共享库直接拷贝到 build 目录下, 共享库的寻找规则是先看工作路径, 再看系统环境变量, 这样的话, 我们就不拍动态库找不到了.
+
+不过, 我个人还是喜欢在终端中直接启动程序
+
+![image-20251220151605999](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220151605999.png)
+
+我对程序进行了特别配置, 对于 `qDebug`这类调试内容, 会重定向到启动的终端上.
+
+下面我再说一下这套工具链的组件开关
+
+为了省事, 我在这里设置了两组功能开关, 如果你想启用它们, 直接把 `OFF` 改成 `ON`就行
+
+![image-20251220152031096](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220152031096.png)
+
+不过, 由于`boost`和`qt`的组件还都挺多的, 我这里仅仅是列举出了一些常用组件, 如果你想使用别的组件, 你需要改两处地方, 一是仿照上面的图片把你的组件加上去, 然后打开开关, 二是在具体的模块引入脚本里, 把你的组件也给加上去
+
+![image-20251220152324845](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220152324845.png)
+
+![image-20251220152342094](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220152342094.png)
+
+![image-20251220152409481](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220152409481.png)
+
+这个 boost 是使用 `b2`构建的, 应该是支持挺多库的, 不过如果真的总是找不到你需要的组件, 那建议你去相关目录里找一找有没有具体文件, 万一真的没有这个组件呢.
+
+下面说一下已知的缺陷, 在构建过程中, 有时会误触发一个错误
+
+![image-20251220153016592](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220153016592.png)
+
+此时你只需要把 build `rm ./*`, 然后重新配置构建就行
+
+![image-20251220153132801](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220153132801.png)
+
+中间这段错是因为我没有把 designer 关掉, 这里 designer 直接使用了 build 下的一些共享库
+
+另一个缺点是, 这套工具的 Qt 没有离线文档, 所以你必须要去查在线文档, 所以我说, 最好有科学上网的能力
+
+![image-20251220153419872](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220153419872.png)
+
+还有一段关键设置是这个, 告知 `clangd` 插件, `compile_commands.json`在工作区文件夹的 build 子目录下
+
+![image-20251220153729193](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220153729193.png)
+
+应该也需要设置一下 `clangd`的实际目录
+
+![image-20251220154009264](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220154009264.png)
+
+![image-20251220154033653](https://wind-note-image.oss-cn-shenzhen.aliyuncs.com/image-20251220154033653.png)
+
+对于新项目的创建, 你只需要把对应的模版文件夹复制过去, 然后把名字改一下就行
+
+目前我想到的注意点就这些.
 
 # 完
 
